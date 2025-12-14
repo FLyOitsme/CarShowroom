@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CarShowroom.MainPage"
+             Title="Каталог"
+             BackgroundColor="White">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+        <!-- Заголовок -->
+        <Border 
+            Grid.Row="0"
+            BackgroundColor="White"
+            StrokeThickness="0,0,0,1"
+            Stroke="{StaticResource Gray200}"
+            Padding="24,16">
+            <Label 
+                Text="Автосалон"
+                FontSize="24"
+                FontAttributes="Bold"
+                TextColor="{StaticResource Black}" />
+        </Border>
+
+        <!-- Поиск -->
+        <Border 
+            Grid.Row="1"
+            BackgroundColor="White"
+            Stroke="{StaticResource Gray200}"
+            Padding="16,12">
+            <SearchBar 
+                x:Name="SearchBar"
+                Placeholder="Поиск по марке, модели..."
+                TextChanged="OnSearchTextChanged"
+                BackgroundColor="Transparent" />
+        </Border>
+
+        <!-- Список автомобилей -->
+        <CollectionView 
+            x:Name="CarsCollectionView"
+            Grid.Row="2"
+            SelectionMode="Single"
+            SelectionChanged="OnCarSelected"
+            BackgroundColor="Transparent">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Car">
+                    <Border 
+                        Margin="16,8"
+                        Padding="0"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        BackgroundColor="White"
+                        StrokeShape="RoundRectangle 12">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnCarTapped" CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+                        
+                        <Grid Padding="16" RowDefinitions="Auto,Auto,Auto,Auto">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Изображение -->
+                            <Border 
+                                Grid.Column="0"
+                                Grid.RowSpan="4"
+                                StrokeThickness="1"
+                                Stroke="{StaticResource Gray200}"
+                                BackgroundColor="{StaticResource Gray100}"
+                                StrokeShape="RoundRectangle 8"
+                                Padding="8">
+                                <Image 
+                                    Source="{Binding ImageUrl}"
+                                    Aspect="AspectFill"
+                                    HeightRequest="100"
+                                    WidthRequest="100" />
+                            </Border>
+
+                            <!-- Информация -->
+                            <Label 
+                                Grid.Column="1"
+                                Grid.Row="0"
+                                Text="{Binding FullName}"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource Black}"
+                                Margin="12,0,0,8" />
+
+                            <Label 
+                                Grid.Column="1"
+                                Grid.Row="1"
+                                Text="{Binding Description}"
+                                FontSize="14"
+                                TextColor="{StaticResource Gray500}"
+                                Margin="12,0,0,8"
+                                MaxLines="2" />
+
+                            <HorizontalStackLayout 
+                                Grid.Column="1"
+                                Grid.Row="2"
+                                Spacing="12"
+                                Margin="12,0,0,8">
+                                <Label 
+                                    Text="{Binding EngineVolume, StringFormat='{0:F1} л'}" 
+                                    FontSize="12"
+                                    TextColor="{StaticResource Gray500}" />
+                                <Label 
+                                    Text="{Binding Transmission}" 
+                                    FontSize="12"
+                                    TextColor="{StaticResource Gray500}" />
+                                <Label 
+                                    Text="{Binding Mileage, StringFormat='{0:N0} км'}" 
+                                    FontSize="12"
+                                    TextColor="{StaticResource Gray500}" />
+                            </HorizontalStackLayout>
+
+                            <Label 
+                                Grid.Column="1"
+                                Grid.Row="3"
+                                Text="{Binding Price, StringFormat='{0:N0} ₽'}"
+                                FontSize="20"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource AdobeAccent}"
+                                Margin="12,0,0,0" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Кнопка добавления -->
+        <Button 
+            x:Name="AddButton"
+            Text="+"
+            FontSize="32"
+            WidthRequest="56"
+            HeightRequest="56"
+            CornerRadius="28"
+            BackgroundColor="{StaticResource AdobeAccent}"
+            TextColor="White"
+            HorizontalOptions="End"
+            VerticalOptions="End"
+            Margin="24"
+            Clicked="OnAddCarClicked" />
+    </Grid>
+
+</ContentPage>
