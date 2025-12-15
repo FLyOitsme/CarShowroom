@@ -1,0 +1,37 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Custom for Visual Studio
+*.cs     diff=csharp
+*.xaml   linguist-language=XML
+
+# Mark generated files
+*.Designer.cs linguist-generated=true
+*.designer.cs linguist-generated=true
+*.g.cs linguist-generated=true
+*.g.i.cs linguist-generated=true
+
+# Ignore Android generated files
+Platforms/Android/obj/** linguist-vendored
+Platforms/Android/bin/** linguist-vendored
+obj/** linguist-generated=true linguist-vendored
+bin/** linguist-generated=true linguist-vendored
+
+# Mark MAUI platform files as vendored (not counted in language statistics)
+Platforms/Android/** linguist-vendored
+Platforms/iOS/** linguist-vendored
+Platforms/MacCatalyst/** linguist-vendored
+Platforms/Tizen/** linguist-vendored
+Platforms/Windows/** linguist-vendored=false
+
+# Ensure C# is detected properly
+*.cs linguist-detectable=true
+*.xaml linguist-detectable=true
+*.csproj linguist-detectable=true
+
+# Documentation
+*.md linguist-documentation
+
+# Archives
+*.zip binary
+*.7z binary
