@@ -463,7 +463,7 @@
                 
                 <Button 
                     x:Name="PrintContractButton"
-                    Text="Сохранить в PDF"
+                    Text="Превью договора"
                     BackgroundColor="{StaticResource Gray400}"
                     TextColor="White"
                     Clicked="OnPrintContractClicked" />

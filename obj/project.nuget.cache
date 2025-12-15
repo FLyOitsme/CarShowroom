@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "cNKnp18+uAc=",
+  "dgSpecHash": "wl4FyRgNJFw=",
   "success": true,
   "projectFilePath": "C:\\Users\\FLyO\\source\\repos\\CarShowroom\\CarShowroom.csproj",
   "expectedPackageFiles": [
@@ -29,7 +29,6 @@
     "C:\\Users\\FLyO\\.nuget\\packages\\microsoft.net.illink.tasks\\8.0.10\\microsoft.net.illink.tasks.8.0.10.nupkg.sha512",
     "C:\\Users\\FLyO\\.nuget\\packages\\microsoft.windows.sdk.buildtools\\10.0.22621.756\\microsoft.windows.sdk.buildtools.10.0.22621.756.nupkg.sha512",
     "C:\\Users\\FLyO\\.nuget\\packages\\microsoft.windowsappsdk\\1.5.240627000\\microsoft.windowsappsdk.1.5.240627000.nupkg.sha512",
-    "C:\\Users\\FLyO\\.nuget\\packages\\questpdf\\2024.3.10\\questpdf.2024.3.10.nupkg.sha512",
     "C:\\Users\\FLyO\\.nuget\\packages\\xamarin.android.glide\\4.15.1.2\\xamarin.android.glide.4.15.1.2.nupkg.sha512",
     "C:\\Users\\FLyO\\.nuget\\packages\\xamarin.android.glide.annotations\\4.15.1.2\\xamarin.android.glide.annotations.4.15.1.2.nupkg.sha512",
     "C:\\Users\\FLyO\\.nuget\\packages\\xamarin.android.glide.disklrucache\\4.15.1.2\\xamarin.android.glide.disklrucache.4.15.1.2.nupkg.sha512",

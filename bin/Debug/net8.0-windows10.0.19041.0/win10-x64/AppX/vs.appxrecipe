@@ -29,25 +29,25 @@
     <AppXManifest Include="C:\Users\FLyO\source\repos\CarShowroom\bin\Debug\net8.0-windows10.0.19041.0\win10-x64\AppxManifest.xml">
       <PackagePath>AppxManifest.xml</PackagePath>
       <ReRegisterAppIfChanged>true</ReRegisterAppIfChanged>
-      <Modified>2025-12-14T18:25:42.376</Modified>
+      <Modified>2025-12-15T13:31:00.041</Modified>
     </AppXManifest>
   </ItemGroup>
   <ItemGroup>
     <AppxPackagedFile Include="C:\Users\FLyO\source\repos\CarShowroom\bin\Debug\net8.0-windows10.0.19041.0\win10-x64\resources.pri">
       <PackagePath>resources.pri</PackagePath>
-      <Modified>2025-12-14T17:47:12.962</Modified>
+      <Modified>2025-12-15T12:36:33.087</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\FLyO\source\repos\CarShowroom\bin\Debug\net8.0-windows10.0.19041.0\win10-x64\CarShowroom.runtimeconfig.json">
       <PackagePath>CarShowroom.runtimeconfig.json</PackagePath>
-      <Modified>2025-12-14T18:25:42.138</Modified>
+      <Modified>2025-12-15T12:36:32.814</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\FLyO\source\repos\CarShowroom\bin\Debug\net8.0-windows10.0.19041.0\win10-x64\CarShowroom.dll">
       <PackagePath>CarShowroom.dll</PackagePath>
-      <Modified>2025-12-14T18:25:40.734</Modified>
+      <Modified>2025-12-15T12:36:31.173</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\FLyO\source\repos\CarShowroom\obj\Debug\net8.0-windows10.0.19041.0\win10-x64\apphost.exe">
       <PackagePath>CarShowroom.exe</PackagePath>
-      <Modified>2025-12-14T18:25:40.748</Modified>
+      <Modified>2025-12-15T12:36:31.204</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\FLyO\source\repos\CarShowroom\Resources\Raw\AboutAssets.txt">
       <PackagePath>AboutAssets.txt</PackagePath>
@@ -287,7 +287,7 @@
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\FLyO\source\repos\CarShowroom\bin\Debug\net8.0-windows10.0.19041.0\win10-x64\CarShowroom.deps.json">
       <PackagePath>CarShowroom.deps.json</PackagePath>
-      <Modified>2025-12-14T18:25:41.998</Modified>
+      <Modified>2025-12-15T12:36:32.762</Modified>
     </AppxPackagedFile>
     <AppxPackagedFile Include="C:\Users\FLyO\.nuget\packages\microsoft.windows.sdk.net.ref\10.0.19041.44\lib\net8.0\Microsoft.Windows.SDK.NET.dll">
       <PackagePath>Microsoft.Windows.SDK.NET.dll</PackagePath>

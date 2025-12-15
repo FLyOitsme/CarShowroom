@@ -83,10 +83,6 @@
               "target": "Package",
               "version": "[8.0.10, )",
               "autoReferenced": true
-            },
-            "QuestPDF": {
-              "target": "Package",
-              "version": "[2024.3.10, )"
             }
           },
           "imports": [
@@ -130,10 +126,6 @@
               "target": "Package",
               "version": "[8.0.10, )",
               "autoReferenced": true
-            },
-            "QuestPDF": {
-              "target": "Package",
-              "version": "[2024.3.10, )"
             }
           },
           "imports": [
@@ -177,10 +169,6 @@
               "target": "Package",
               "version": "[8.0.10, )",
               "autoReferenced": true
-            },
-            "QuestPDF": {
-              "target": "Package",
-              "version": "[2024.3.10, )"
             }
           },
           "imports": [
@@ -219,10 +207,6 @@
             "Microsoft.Maui.Controls.Compatibility": {
               "target": "Package",
               "version": "[8.0.82, )"
-            },
-            "QuestPDF": {
-              "target": "Package",
-              "version": "[2024.3.10, )"
             }
           },
           "imports": [

@@ -1,7 +1,12 @@
+using CarShowroom.Models;
+using CarShowroom.Services;
+
 namespace CarShowroom
 {
     public partial class SaleContractPage : ContentPage
     {
+        private readonly SaleContractService _contractService;
+        private readonly CarService _carService;
         private int? _carId;
         private int? _contractId;
 
@@ -13,6 +18,11 @@ namespace CarShowroom
             _carId = carId;
             _contractId = contractId;
 
+            ContractDatePicker.Date = DateTime.Now;
+
+            // Предзаполняем данные продавца (автосалона)
+            LoadSellerData();
+
             if (_contractId.HasValue)
             {
                 Title = "Редактировать договор";
@@ -22,8 +32,34 @@ namespace CarShowroom
             {
                 LoadCarData();
             }
+        }
 
-            ContractDatePicker.Date = DateTime.Now;
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+            // Убеждаемся, что данные загружены при появлении страницы
+            if (!_contractId.HasValue)
+            {
+                LoadSellerData();
+                if (_carId.HasValue)
+                {
+                    LoadCarData();
+                }
+            }
+        }
+
+        private void LoadSellerData()
+        {
+            // Предзаполняем данные продавца только если это новый договор
+            if (!_contractId.HasValue)
+            {
+                SellerCompanyNameEntry.Text = ShowroomService.CompanyName;
+                SellerInnEntry.Text = ShowroomService.Inn;
+                SellerOgrnEntry.Text = ShowroomService.Ogrn;
+                SellerAddressEditor.Text = ShowroomService.Address;
+                SellerDirectorNameEntry.Text = ShowroomService.DirectorName;
+                SellerDirectorPositionEntry.Text = ShowroomService.DirectorPosition;
+            }
         }
 
         private void LoadCarData()
@@ -33,15 +69,17 @@ namespace CarShowroom
                 var car = _carService.GetCarById(_carId.Value);
                 if (car != null)
                 {
-                    CarBrandEntry.Text = car.Brand;
-                    CarModelEntry.Text = car.Model;
-                    CarYearEntry.Text = car.Year.ToString();
-                    CarColorEntry.Text = car.Color;
-                    CarVinEntry.Text = car.Vin;
-                    CarEngineNumberEntry.Text = car.EngineNumber;
-                    CarBodyNumberEntry.Text = car.BodyNumber;
-                    CarRegistrationNumberEntry.Text = car.RegistrationNumber;
-                    SalePriceEntry.Text = car.Price.ToString();
+                    // Заполняем все поля данными автомобиля
+                    CarBrandEntry.Text = car.Brand ?? string.Empty;
+                    CarModelEntry.Text = car.Model ?? string.Empty;
+                    CarYearEntry.Text = car.Year > 0 ? car.Year.ToString() : string.Empty;
+                    CarColorEntry.Text = car.Color ?? string.Empty;
+                    CarVinEntry.Text = car.Vin ?? string.Empty;
+                    CarEngineNumberEntry.Text = car.EngineNumber ?? string.Empty;
+                    CarBodyNumberEntry.Text = car.BodyNumber ?? string.Empty;
+                    // Гос. номер не заполняем, так как машины новые
+                    CarRegistrationNumberEntry.Text = string.Empty;
+                    SalePriceEntry.Text = car.Price > 0 ? car.Price.ToString("F0") : string.Empty;
                 }
             }
         }
@@ -63,18 +101,17 @@ namespace CarShowroom
                     CarColorEntry.Text = contract.CarColor;
                     CarRegistrationNumberEntry.Text = contract.CarRegistrationNumber;
                     
-                    SellerFullNameEntry.Text = contract.SellerFullName;
-                    SellerPassportSeriesEntry.Text = contract.SellerPassportSeries;
-                    SellerPassportNumberEntry.Text = contract.SellerPassportNumber;
-                    SellerPassportIssuedByEntry.Text = contract.SellerPassportIssuedBy;
-                    SellerPassportIssuedDatePicker.Date = contract.SellerPassportIssuedDate;
+                    SellerCompanyNameEntry.Text = contract.SellerCompanyName;
+                    SellerInnEntry.Text = contract.SellerInn;
+                    SellerOgrnEntry.Text = contract.SellerOgrn;
                     SellerAddressEditor.Text = contract.SellerAddress;
+                    SellerDirectorNameEntry.Text = contract.SellerDirectorName;
+                    SellerDirectorPositionEntry.Text = contract.SellerDirectorPosition;
                     
                     BuyerFullNameEntry.Text = contract.BuyerFullName;
                     BuyerPassportSeriesEntry.Text = contract.BuyerPassportSeries;
                     BuyerPassportNumberEntry.Text = contract.BuyerPassportNumber;
                     BuyerPassportIssuedByEntry.Text = contract.BuyerPassportIssuedBy;
-                    BuyerPassportIssuedDatePicker.Date = contract.BuyerPassportIssuedDate;
                     BuyerAddressEditor.Text = contract.BuyerAddress;
                     
                     SalePriceEntry.Text = contract.SalePrice.ToString();
@@ -94,7 +131,9 @@ namespace CarShowroom
                 string.IsNullOrWhiteSpace(CarModelEntry.Text) ||
                 string.IsNullOrWhiteSpace(CarYearEntry.Text) ||
                 string.IsNullOrWhiteSpace(CarVinEntry.Text) ||
-                string.IsNullOrWhiteSpace(SellerFullNameEntry.Text) ||
+                string.IsNullOrWhiteSpace(SellerCompanyNameEntry.Text) ||
+                string.IsNullOrWhiteSpace(SellerInnEntry.Text) ||
+                string.IsNullOrWhiteSpace(SellerOgrnEntry.Text) ||
                 string.IsNullOrWhiteSpace(BuyerFullNameEntry.Text) ||
                 string.IsNullOrWhiteSpace(SalePriceEntry.Text))
             {
@@ -126,18 +165,17 @@ namespace CarShowroom
                 CarColor = CarColorEntry.Text.Trim(),
                 CarRegistrationNumber = CarRegistrationNumberEntry.Text?.Trim() ?? string.Empty,
                 
-                SellerFullName = SellerFullNameEntry.Text.Trim(),
-                SellerPassportSeries = SellerPassportSeriesEntry.Text?.Trim() ?? string.Empty,
-                SellerPassportNumber = SellerPassportNumberEntry.Text?.Trim() ?? string.Empty,
-                SellerPassportIssuedBy = SellerPassportIssuedByEntry.Text?.Trim() ?? string.Empty,
-                SellerPassportIssuedDate = SellerPassportIssuedDatePicker.Date,
+                SellerCompanyName = SellerCompanyNameEntry.Text.Trim(),
+                SellerInn = SellerInnEntry.Text.Trim(),
+                SellerOgrn = SellerOgrnEntry.Text.Trim(),
                 SellerAddress = SellerAddressEditor.Text?.Trim() ?? string.Empty,
+                SellerDirectorName = SellerDirectorNameEntry.Text?.Trim() ?? string.Empty,
+                SellerDirectorPosition = SellerDirectorPositionEntry.Text?.Trim() ?? string.Empty,
                 
                 BuyerFullName = BuyerFullNameEntry.Text.Trim(),
                 BuyerPassportSeries = BuyerPassportSeriesEntry.Text?.Trim() ?? string.Empty,
                 BuyerPassportNumber = BuyerPassportNumberEntry.Text?.Trim() ?? string.Empty,
                 BuyerPassportIssuedBy = BuyerPassportIssuedByEntry.Text?.Trim() ?? string.Empty,
-                BuyerPassportIssuedDate = BuyerPassportIssuedDatePicker.Date,
                 BuyerAddress = BuyerAddressEditor.Text?.Trim() ?? string.Empty,
                 
                 SalePrice = price,
@@ -165,7 +203,47 @@ namespace CarShowroom
 
         private async void OnPrintContractClicked(object sender, EventArgs e)
         {
-            await DisplayAlert("Печать", "Функция печати будет реализована в будущей версии", "OK");
+            // Валидация перед показом превью
+            if (string.IsNullOrWhiteSpace(CarBrandEntry.Text) ||
+                string.IsNullOrWhiteSpace(CarModelEntry.Text) ||
+                string.IsNullOrWhiteSpace(CarYearEntry.Text) ||
+                string.IsNullOrWhiteSpace(CarVinEntry.Text) ||
+                string.IsNullOrWhiteSpace(SellerCompanyNameEntry.Text) ||
+                string.IsNullOrWhiteSpace(BuyerFullNameEntry.Text) ||
+                string.IsNullOrWhiteSpace(SalePriceEntry.Text))
+            {
+                await DisplayAlert("Ошибка", "Пожалуйста, заполните все обязательные поля", "OK");
+                return;
+            }
+
+            // Показываем превью договора
+            var summary = $"ДОГОВОР КУПЛИ-ПРОДАЖИ АВТОМОБИЛЯ\n\n" +
+                         $"Дата: {ContractDatePicker.Date:dd.MM.yyyy}\n" +
+                         $"г. Москва\n\n" +
+                         $"═══════════════════════════════\n\n" +
+                         $"ПРОДАВЕЦ:\n" +
+                         $"{SellerCompanyNameEntry.Text}\n" +
+                         $"ИНН: {SellerInnEntry.Text}\n" +
+                         $"ОГРН: {SellerOgrnEntry.Text}\n" +
+                         $"Адрес: {SellerAddressEditor.Text}\n\n" +
+                         $"═══════════════════════════════\n\n" +
+                         $"ПОКУПАТЕЛЬ:\n" +
+                         $"{BuyerFullNameEntry.Text}\n" +
+                         $"Паспорт: {BuyerPassportSeriesEntry.Text} {BuyerPassportNumberEntry.Text}\n" +
+                         $"Выдан: {BuyerPassportIssuedByEntry.Text}\n" +
+                         $"Адрес: {BuyerAddressEditor.Text}\n\n" +
+                         $"═══════════════════════════════\n\n" +
+                         $"АВТОМОБИЛЬ:\n" +
+                         $"{CarBrandEntry.Text} {CarModelEntry.Text} ({CarYearEntry.Text})\n" +
+                         $"VIN: {CarVinEntry.Text}\n" +
+                         $"Цвет: {CarColorEntry.Text}\n\n" +
+                         $"═══════════════════════════════\n\n" +
+                         $"ЦЕНА: {SalePriceEntry.Text} рублей\n" +
+                         $"Способ оплаты: {PaymentMethodPicker.SelectedItem}\n\n" +
+                         $"Договор оформлен в приложении.\n" +
+                         $"Это демонстрационная версия.";
+
+            await DisplayAlert("Превью договора", summary, "OK");
         }
     }
 }
