@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:entities="clr-namespace:DataLayer.Entities"
+             x:Class="CarShowroom.SalesListPage"
+             Title="Продажи">
+    
+    <Grid RowDefinitions="Auto,*">
+        <!-- Кнопка добавления -->
+        <Button 
+            x:Name="AddSaleButton"
+            Text="+ Создать продажу"
+            Grid.Row="0"
+            Margin="16,8"
+            BackgroundColor="{StaticResource AdobeAccent}"
+            TextColor="White"
+            Clicked="OnAddSaleClicked" />
+
+        <!-- Список продаж -->
+        <CollectionView 
+            x:Name="SalesCollectionView"
+            Grid.Row="1"
+            SelectionMode="Single"
+            SelectionChanged="OnSaleSelected">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="entities:Sale">
+                    <Border 
+                        Margin="16,8"
+                        Padding="16"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        BackgroundColor="White"
+                        StrokeShape="RoundRectangle 12">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                            <Label 
+                                Grid.Row="0"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource Black}">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="{}{0} {1}">
+                                        <Binding Path="Car.Model.Brand.Name" />
+                                        <Binding Path="Car.Model.Name" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                            
+                            <Label 
+                                Grid.Row="1"
+                                FontSize="14"
+                                TextColor="{StaticResource Gray500}">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="{}Менеджер: {0} {1}">
+                                        <Binding Path="Manager.Name" />
+                                        <Binding Path="Manager.Surname" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                            
+                            <Label 
+                                Grid.Row="2"
+                                FontSize="14"
+                                TextColor="{StaticResource Gray500}">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="{}Дата: {0:dd.MM.yyyy}">
+                                        <Binding Path="Date" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                            
+                            <Label 
+                                Grid.Row="3"
+                                FontSize="20"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource AdobeAccent}">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="{}{0:N0} ₽">
+                                        <Binding Path="Cost" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>
+

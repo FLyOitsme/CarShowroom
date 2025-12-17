@@ -1,4 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using DataLayer.Entities;
+using CarShowroom.Services;
 
 namespace CarShowroom
 {
@@ -18,6 +21,16 @@ namespace CarShowroom
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+
+            // Настройка подключения к базе данных
+            var connectionString = "Host=localhost;Database=CarShowroomBD;Username=postgres;Password=123";
+            builder.Services.AddDbContext<CarShowroomDbContext>(options =>
+                options.UseNpgsql(connectionString));
+
+            // Регистрация сервисов
+            builder.Services.AddScoped<CarService>();
+            builder.Services.AddScoped<SaleService>();
+            builder.Services.AddScoped<UserService>();
 
             return builder.Build();
         }

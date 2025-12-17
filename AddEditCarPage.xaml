@@ -35,15 +35,15 @@
                         FontAttributes="Bold"
                         TextColor="{StaticResource Black}" />
 
-                    <Entry 
-                        x:Name="BrandEntry"
-                        Placeholder="Марка *"
-                        PlaceholderColor="{StaticResource Gray500}" />
+                    <Picker 
+                        x:Name="BrandPicker"
+                        Title="Марка *"
+                        TitleColor="{StaticResource Gray500}" />
 
-                    <Entry 
-                        x:Name="ModelEntry"
-                        Placeholder="Модель *"
-                        PlaceholderColor="{StaticResource Gray500}" />
+                    <Picker 
+                        x:Name="ModelPicker"
+                        Title="Модель *"
+                        TitleColor="{StaticResource Gray500}" />
 
                     <Entry 
                         x:Name="YearEntry"
@@ -80,20 +80,18 @@
 
                     <Picker 
                         x:Name="EngineTypePicker"
-                        Title="Тип двигателя *">
-                        <Picker.ItemsSource>
-                            <x:Array Type="{x:Type x:String}">
-                                <x:String>Бензин</x:String>
-                                <x:String>Дизель</x:String>
-                                <x:String>Электрический</x:String>
-                                <x:String>Гибрид</x:String>
-                            </x:Array>
-                        </Picker.ItemsSource>
-                    </Picker>
+                        Title="Тип двигателя *"
+                        TitleColor="{StaticResource Gray500}" />
 
                     <Entry 
                         x:Name="EngineVolumeEntry"
                         Placeholder="Объем двигателя (л) *"
+                        PlaceholderColor="{StaticResource Gray500}"
+                        Keyboard="Numeric" />
+
+                    <Entry 
+                        x:Name="PowerEntry"
+                        Placeholder="Мощность (л.с.)"
                         PlaceholderColor="{StaticResource Gray500}"
                         Keyboard="Numeric" />
 
@@ -103,78 +101,42 @@
                         PlaceholderColor="{StaticResource Gray500}"
                         Keyboard="Numeric" />
 
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Switch 
+                            x:Name="StockSwitch"
+                            Grid.Column="0"
+                            IsToggled="True"
+                            VerticalOptions="Center" />
+                        <Label 
+                            Grid.Column="1"
+                            x:Name="StockLabel"
+                            Text="В наличии"
+                            VerticalOptions="Center"
+                            TextColor="{StaticResource Black}" />
+                    </Grid>
+
                     <Picker 
                         x:Name="TransmissionPicker"
-                        Title="Коробка передач *">
-                        <Picker.ItemsSource>
-                            <x:Array Type="{x:Type x:String}">
-                                <x:String>Механика</x:String>
-                                <x:String>Автомат</x:String>
-                                <x:String>Робот</x:String>
-                                <x:String>Вариатор</x:String>
-                            </x:Array>
-                        </Picker.ItemsSource>
-                    </Picker>
+                        Title="Коробка передач *"
+                        TitleColor="{StaticResource Gray500}" />
+
+                    <Picker 
+                        x:Name="CarTypePicker"
+                        Title="Тип кузова *"
+                        TitleColor="{StaticResource Gray500}" />
+
+                    <Picker 
+                        x:Name="ConditionPicker"
+                        Title="Состояние *"
+                        TitleColor="{StaticResource Gray500}" />
+
+                    <Picker 
+                        x:Name="WdTypePicker"
+                        Title="Привод *"
+                        TitleColor="{StaticResource Gray500}" />
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Дополнительная информация -->
-            <Border 
-                StrokeThickness="1"
-                Stroke="{StaticResource Gray200}"
-                BackgroundColor="White"
-                StrokeShape="RoundRectangle 12"
-                Padding="16">
-                <VerticalStackLayout Spacing="12">
-                    <Label 
-                        Text="Дополнительная информация"
-                        FontSize="16"
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource Black}" />
-
-                    <Entry 
-                        x:Name="VinEntry"
-                        Placeholder="VIN номер"
-                        PlaceholderColor="{StaticResource Gray500}" />
-
-                    <Entry 
-                        x:Name="EngineNumberEntry"
-                        Placeholder="Номер двигателя"
-                        PlaceholderColor="{StaticResource Gray500}" />
-
-                    <Entry 
-                        x:Name="BodyNumberEntry"
-                        Placeholder="Номер кузова"
-                        PlaceholderColor="{StaticResource Gray500}" />
-
-                    <Entry 
-                        x:Name="RegistrationNumberEntry"
-                        Placeholder="Государственный номер"
-                        PlaceholderColor="{StaticResource Gray500}" />
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- Описание -->
-            <Border 
-                StrokeThickness="1"
-                Stroke="{StaticResource Gray200}"
-                BackgroundColor="White"
-                StrokeShape="RoundRectangle 12"
-                Padding="16">
-                <VerticalStackLayout Spacing="12">
-                    <Label 
-                        Text="Описание"
-                        FontSize="16"
-                        FontAttributes="Bold"
-                        TextColor="{StaticResource Black}" />
-
-                    <Editor 
-                        x:Name="DescriptionEditor"
-                        Placeholder="Описание автомобиля"
-                        PlaceholderColor="{StaticResource Gray500}"
-                        HeightRequest="100" />
-                </VerticalStackLayout>
-            </Border>
 
             <!-- Кнопки -->
             <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,20,0,0">

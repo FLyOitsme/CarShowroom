@@ -3,23 +3,22 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0-android;net8.0-ios;net8.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
-		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
-		<!-- <TargetFrameworks>$(TargetFrameworks);net8.0-tizen</TargetFrameworks> -->
-
-		<!-- Note for MacCatalyst:
-		The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
-		When specifying both architectures, use the plural <RuntimeIdentifiers> instead of the singular <RuntimeIdentifier>.
-		The Mac App Store will NOT accept apps with ONLY maccatalyst-arm64 indicated;
-		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
-		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
-
+		
 		<OutputType>Exe</OutputType>
 		<RootNamespace>CarShowroom</RootNamespace>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-
+		
+		<!-- Отключите предупреждения как ошибки для пакетов -->
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+		<NoWarn>NU1605</NoWarn>
+		
+		<!-- Для Windows -->
+		<UseWindowsForms Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">false</UseWindowsForms>
+		<UseWPF Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">false</UseWPF>
+		
 		<!-- Display name -->
 		<ApplicationTitle>CarShowroom</ApplicationTitle>
 
@@ -35,7 +34,6 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -57,9 +55,55 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- MAUI пакеты -->
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
 	</ItemGroup>
+
+
+	<!-- Решение конфликта типов WebView2 между Microsoft.Web.WebView2.Core и Microsoft.WinUI -->
+	<!-- Для Windows исключаем Microsoft.Web.WebView2.Core из компиляции, используем типы из Microsoft.WinUI -->
+	<Target Name="ExcludeWebView2CoreForWindows" AfterTargets="ResolveAssemblyReferences" BeforeTargets="CoreCompile" Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">
+		<ItemGroup>
+			<ReferencePath Remove="@(ReferencePath)" Condition="'%(Filename)' == 'Microsoft.Web.WebView2.Core'" />
+			<Reference Remove="Microsoft.Web.WebView2.Core" />
+		</ItemGroup>
+	</Target>
+	
+	<!-- Исключаем Microsoft.Web.WebView2.Core из компиляции для Windows через Reference -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">
+		<Reference Remove="Microsoft.Web.WebView2.Core" />
+	</ItemGroup>
+	
+	<!-- Модифицируем сгенерированный файл после его создания, добавляя директиву для подавления ошибок CS0433 -->
+	<Target Name="FixWebView2Conflicts" AfterTargets="GenerateWinRTFallback" BeforeTargets="CoreCompile" Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">
+		<PropertyGroup>
+			<RcwFile>$(IntermediateOutputPath)intermediatexaml\WinRT.SourceGenerator\Generator.RcwReflectionFallbackGenerator\RcwFallbackInitializer.g.cs</RcwFile>
+		</PropertyGroup>
+		<ReadLinesFromFile File="$(RcwFile)" Condition="Exists('$(RcwFile)')">
+			<Output TaskParameter="Lines" ItemName="_RcwLines" />
+		</ReadLinesFromFile>
+		<ItemGroup Condition="Exists('$(RcwFile)')">
+			<_FixedRcwLines Include="#pragma warning disable CS0433 // Тип существует в нескольких сборках (Microsoft.Web.WebView2.Core и Microsoft.WinUI)" />
+			<_FixedRcwLines Include="@(_RcwLines)" />
+		</ItemGroup>
+		<WriteLinesToFile 
+			File="$(RcwFile)" 
+			Lines="@(_FixedRcwLines)"
+			Overwrite="true"
+			Condition="Exists('$(RcwFile)')" />
+	</Target>
 
 </Project>

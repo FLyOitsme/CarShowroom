@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:entities="clr-namespace:DataLayer.Entities"
+             x:Class="CarShowroom.CreateSalePage"
+             Title="Создать продажу">
+    
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="16">
+            
+            <!-- Выбор автомобиля -->
+            <Frame>
+                <StackLayout Spacing="12">
+                    <Label Text="Автомобиль" FontSize="18" FontAttributes="Bold" />
+                    <Picker x:Name="CarPicker" 
+                            Title="Выберите автомобиль *" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Выбор менеджера -->
+            <Frame>
+                <StackLayout Spacing="12">
+                    <Label Text="Менеджер" FontSize="18" FontAttributes="Bold" />
+                    <Picker x:Name="ManagerPicker" 
+                            Title="Выберите менеджера *" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Информация о клиенте -->
+            <Frame>
+                <StackLayout Spacing="12">
+                    <Label Text="Клиент" FontSize="18" FontAttributes="Bold" />
+                    
+                    <SearchBar x:Name="ClientSearchBar"
+                               Placeholder="Поиск клиента по ФИО..."
+                               SearchButtonPressed="OnSearchClientClicked"
+                               TextChanged="OnClientSearchTextChanged" />
+                    
+                    <CollectionView x:Name="ClientsCollectionView"
+                                    SelectionMode="Single"
+                                    SelectionChanged="OnClientSelected"
+                                    HeightRequest="120"
+                                    IsVisible="False">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="entities:User">
+                                <Border Margin="0,4"
+                                        Padding="12"
+                                        StrokeThickness="1"
+                                        Stroke="{StaticResource Gray300}"
+                                        BackgroundColor="White"
+                                        StrokeShape="RoundRectangle 8">
+                                    <Label Text="{Binding Surname, StringFormat='{}{0} {1} {2}'}" 
+                                           TextColor="{StaticResource Black}" />
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    
+                    <Entry x:Name="ClientNameEntry" 
+                           Placeholder="ФИО клиента *" />
+                    
+                    <Entry x:Name="ClientPhoneEntry" 
+                           Placeholder="Телефон (необязательно)"
+                           Keyboard="Telephone" />
+                    
+                    <Editor x:Name="ClientAddressEditor" 
+                            Placeholder="Адрес (необязательно)"
+                            HeightRequest="80" />
+                    
+                    <Button Text="Найти существующего клиента" 
+                            Clicked="OnFindClientClicked"
+                            BackgroundColor="{StaticResource Gray400}"
+                            TextColor="White" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Дата продажи -->
+            <Frame>
+                <StackLayout Spacing="12">
+                    <Label Text="Дата продажи" FontSize="18" FontAttributes="Bold" />
+                    <DatePicker x:Name="SaleDatePicker" Date="{Binding Date}" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Цена -->
+            <Frame>
+                <StackLayout Spacing="12">
+                    <Label Text="Цена" FontSize="18" FontAttributes="Bold" />
+                    <Entry x:Name="PriceEntry" 
+                           Placeholder="Цена автомобиля"
+                           Keyboard="Numeric" />
+                    <Label x:Name="FinalPriceLabel" 
+                           Text="Итоговая цена: 0 ₽"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource AdobeAccent}" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Дополнительные опции -->
+            <Frame>
+                <StackLayout Spacing="12">
+                    <Label Text="Дополнительные опции" FontSize="18" FontAttributes="Bold" />
+                    <CollectionView x:Name="AdditionsCollectionView" 
+                                    SelectionMode="Multiple"
+                                    HeightRequest="150">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="entities:Addition">
+                                <Grid Padding="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox Grid.Column="0" />
+                                    <Label Grid.Column="1" 
+                                           Text="{Binding Name}" 
+                                           VerticalOptions="Center" />
+                                    <Label Grid.Column="2" 
+                                           Text="{Binding Cost, StringFormat='{0:N0} ₽'}" 
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+
+            <!-- Скидки -->
+            <Frame>
+                <StackLayout Spacing="12">
+                    <Label Text="Скидки" FontSize="18" FontAttributes="Bold" />
+                    <CollectionView x:Name="DiscountsCollectionView" 
+                                    SelectionMode="Multiple"
+                                    HeightRequest="150">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="entities:Discount">
+                                <Grid Padding="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox Grid.Column="0" />
+                                    <Label Grid.Column="1" 
+                                           Text="{Binding Name}" 
+                                           VerticalOptions="Center" />
+                                    <Label Grid.Column="2" 
+                                           Text="{Binding Cost, StringFormat='{0}%'}" 
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+
+            <!-- Кнопки -->
+            <Button Text="Создать продажу" 
+                    Clicked="OnCreateSaleClicked"
+                    BackgroundColor="{StaticResource AdobeAccent}"
+                    TextColor="White" />
+            
+            <Button Text="Отмена" 
+                    Clicked="OnCancelClicked" />
+        </StackLayout>
+    </ScrollView>
+</ContentPage>
+

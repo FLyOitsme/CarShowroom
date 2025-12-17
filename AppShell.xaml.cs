@@ -9,7 +9,7 @@ namespace CarShowroom
             // Регистрация маршрутов для навигации
             Routing.RegisterRoute(nameof(CarDetailsPage), typeof(CarDetailsPage));
             Routing.RegisterRoute(nameof(AddEditCarPage), typeof(AddEditCarPage));
-            Routing.RegisterRoute(nameof(SaleContractPage), typeof(SaleContractPage));
+            Routing.RegisterRoute(nameof(CreateSalePage), typeof(CreateSalePage));
         }
     }
 }

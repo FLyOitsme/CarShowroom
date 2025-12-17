@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:models="clr-namespace:CarShowroom.Models"
+             xmlns:entities="clr-namespace:DataLayer.Entities"
              x:Class="CarShowroom.MainPage"
              Title="Каталог"
              BackgroundColor="White">
@@ -11,7 +11,7 @@
         <Border 
             Grid.Row="0"
             BackgroundColor="White"
-            StrokeThickness="0,0,0,1"
+            StrokeThickness="1"
             Stroke="{StaticResource Gray200}"
             Padding="24,16">
             <Label 
@@ -25,7 +25,7 @@
         <Border 
             Grid.Row="1"
             BackgroundColor="White"
-            StrokeThickness="0,0,0,1"
+            StrokeThickness="1"
             Stroke="{StaticResource Gray200}"
             Padding="16,12">
             <SearchBar 
@@ -43,7 +43,7 @@
             SelectionChanged="OnCarSelected"
             BackgroundColor="Transparent">
             <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Car">
+                <DataTemplate x:DataType="entities:Car">
                     <Border 
                         Margin="16,8"
                         Padding="0"
@@ -71,7 +71,7 @@
                                 StrokeShape="RoundRectangle 8"
                                 Padding="8">
                                 <Image 
-                                    Source="{Binding ImageUrl}"
+                                    Source="dotnet_bot.png"
                                     Aspect="AspectFill"
                                     HeightRequest="100"
                                     WidthRequest="100" />
@@ -81,16 +81,23 @@
                             <Label 
                                 Grid.Column="1"
                                 Grid.Row="0"
-                                Text="{Binding FullName}"
                                 FontSize="18"
                                 FontAttributes="Bold"
                                 TextColor="{StaticResource Black}"
-                                Margin="12,0,0,8" />
+                                Margin="12,0,0,8">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="{}{0} {1} ({2})">
+                                        <Binding Path="Model.Brand.Name" />
+                                        <Binding Path="Model.Name" />
+                                        <Binding Path="Year" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
 
                             <Label 
                                 Grid.Column="1"
                                 Grid.Row="1"
-                                Text="{Binding Description}"
+                                Text="{Binding Color}"
                                 FontSize="14"
                                 TextColor="{StaticResource Gray500}"
                                 Margin="12,0,0,8"
@@ -102,27 +109,42 @@
                                 Spacing="12"
                                 Margin="12,0,0,8">
                                 <Label 
-                                    Text="{Binding EngineVolume, StringFormat='{0:F1} л'}" 
+                                    FontSize="12"
+                                    TextColor="{StaticResource Gray500}">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="{}{0:F1} л">
+                                            <Binding Path="EngVol" />
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
+                                <Label 
+                                    Text="{Binding Transmission.Name}" 
                                     FontSize="12"
                                     TextColor="{StaticResource Gray500}" />
                                 <Label 
-                                    Text="{Binding Transmission}" 
                                     FontSize="12"
-                                    TextColor="{StaticResource Gray500}" />
-                                <Label 
-                                    Text="{Binding Mileage, StringFormat='{0:N0} км'}" 
-                                    FontSize="12"
-                                    TextColor="{StaticResource Gray500}" />
+                                    TextColor="{StaticResource Gray500}">
+                                    <Label.Text>
+                                        <MultiBinding StringFormat="{}{0:N0} км">
+                                            <Binding Path="Mileage" />
+                                        </MultiBinding>
+                                    </Label.Text>
+                                </Label>
                             </HorizontalStackLayout>
 
                             <Label 
                                 Grid.Column="1"
                                 Grid.Row="3"
-                                Text="{Binding Price, StringFormat='{0:N0} ₽'}"
                                 FontSize="20"
                                 FontAttributes="Bold"
                                 TextColor="{StaticResource AdobeAccent}"
-                                Margin="12,0,0,0" />
+                                Margin="12,0,0,0">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="{}{0:N0} ₽">
+                                        <Binding Path="Cost" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
                         </Grid>
                     </Border>
                 </DataTemplate>

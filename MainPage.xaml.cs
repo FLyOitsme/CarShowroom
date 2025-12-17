@@ -1,34 +1,95 @@
-using CarShowroom.Models;
 using CarShowroom.Services;
+using DataLayer.Entities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CarShowroom
 {
     public partial class MainPage : ContentPage
     {
-        private readonly CarService _carService;
-        private List<Car> _allCars;
+        private CarService? _carService;
+        private List<Car> _allCars = new();
 
         public MainPage()
         {
             InitializeComponent();
-            _carService = new CarService();
-            LoadCars();
         }
 
-        protected override void OnAppearing()
+        protected override void OnHandlerChanged()
+        {
+            base.OnHandlerChanged();
+            // Используем Dispatcher для получения сервисов после полной загрузки
+            Dispatcher.DispatchAsync(async () =>
+            {
+                await InitializeServicesAsync();
+            });
+        }
+
+        private async Task InitializeServicesAsync()
+        {
+            // Ждем, пока Handler полностью инициализирован
+            var maxAttempts = 10;
+            var attempt = 0;
+            
+            while (_carService == null && attempt < maxAttempts)
+            {
+                if (Handler?.MauiContext?.Services != null)
+                {
+                    _carService = Handler.MauiContext.Services.GetService<CarService>();
+                    if (_carService != null)
+                    {
+                        await LoadCarsAsync();
+                        return;
+                    }
+                }
+                
+                await Task.Delay(50);
+                attempt++;
+            }
+            
+            if (_carService == null)
+            {
+                await DisplayAlert("Ошибка", "CarService не найден", "OK");
+            }
+        }
+
+        protected override async void OnAppearing()
         {
             base.OnAppearing();
-            LoadCars();
+            
+            // Если сервис еще не получен, пытаемся получить
+            if (_carService == null)
+            {
+                await InitializeServicesAsync();
+            }
+            else
+            {
+                await LoadCarsAsync();
+            }
         }
 
-        private void LoadCars()
+        private async Task LoadCarsAsync()
         {
-            _allCars = _carService.GetAllCars();
-            CarsCollectionView.ItemsSource = _allCars;
+            if (_carService == null)
+            {
+                await DisplayAlert("Ошибка", "CarService не инициализирован", "OK");
+                return;
+            }
+
+            try
+            {
+                _allCars = await _carService.GetAllCarsAsync();
+                CarsCollectionView.ItemsSource = _allCars;
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Ошибка", $"Не удалось загрузить автомобили: {ex.Message}", "OK");
+            }
         }
 
-        private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+        private async void OnSearchTextChanged(object sender, TextChangedEventArgs e)
         {
+            if (_carService == null) return;
+
             var searchText = e.NewTextValue?.ToLower() ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(searchText))
@@ -37,14 +98,15 @@ namespace CarShowroom
             }
             else
             {
-                var filteredCars = _allCars.Where(car =>
-                    car.Brand.ToLower().Contains(searchText) ||
-                    car.Model.ToLower().Contains(searchText) ||
-                    car.Color.ToLower().Contains(searchText) ||
-                    car.Description.ToLower().Contains(searchText)
-                ).ToList();
-                
-                CarsCollectionView.ItemsSource = filteredCars;
+                try
+                {
+                    var filteredCars = await _carService.SearchCarsAsync(searchText);
+                    CarsCollectionView.ItemsSource = filteredCars;
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert("Ошибка", $"Ошибка поиска: {ex.Message}", "OK");
+                }
             }
         }
 
@@ -52,16 +114,16 @@ namespace CarShowroom
         {
             if (e.CurrentSelection.FirstOrDefault() is Car selectedCar)
             {
-                await Navigation.PushAsync(new CarDetailsPage(selectedCar.Id));
+                await Navigation.PushAsync(new CarDetailsPage((int)selectedCar.Id));
                 CarsCollectionView.SelectedItem = null;
             }
         }
 
         private async void OnCarTapped(object sender, EventArgs e)
         {
-            if (sender is Grid grid && grid.BindingContext is Car car)
+            if (sender is Border border && border.BindingContext is Car car)
             {
-                await Navigation.PushAsync(new CarDetailsPage(car.Id));
+                await Navigation.PushAsync(new CarDetailsPage((int)car.Id));
             }
         }
 
