@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CarShowroom.Services;
 using DataLayer.Entities;
+using CommunityToolkit.Maui.Storage;
 
 namespace CarShowroom.ViewModels
 {
@@ -10,6 +11,8 @@ namespace CarShowroom.ViewModels
         private readonly CarService _carService;
         private readonly SaleService _saleService;
         private readonly UserService _userService;
+        private readonly PdfContractService _pdfContractService;
+        private readonly IFileSaver? _fileSaver;
 
         [ObservableProperty]
         private List<CarDisplayItem> _cars = new();
@@ -69,11 +72,13 @@ namespace CarShowroom.ViewModels
         private List<Addition> _selectedAdditions = new();
         private List<Discount> _selectedDiscounts = new();
 
-        public CreateSalePageViewModel(CarService carService, SaleService saleService, UserService userService)
+        public CreateSalePageViewModel(CarService carService, SaleService saleService, UserService userService, PdfContractService pdfContractService, IFileSaver? fileSaver = null)
         {
             _carService = carService;
             _saleService = saleService;
             _userService = userService;
+            _pdfContractService = pdfContractService;
+            _fileSaver = fileSaver;
         }
 
         public void Initialize(long? carId = null)
@@ -346,6 +351,19 @@ namespace CarShowroom.ViewModels
                 var selectedDiscountIds = _selectedDiscounts.Select(d => d.Id).ToList();
                 var finalPrice = await _saleService.CalculateFinalPriceAsync(priceWithAdditions, selectedDiscountIds);
 
+                // Проверяем, что все данные корректны
+                if (SelectedCar?.Car?.Id == null || SelectedCar.Car.Id == 0)
+                {
+                    await Shell.Current.DisplayAlert("Ошибка", "Не выбран автомобиль", "OK");
+                    return;
+                }
+
+                if (SelectedManager?.Manager?.Id == null || SelectedManager.Manager.Id == 0)
+                {
+                    await Shell.Current.DisplayAlert("Ошибка", "Не выбран менеджер", "OK");
+                    return;
+                }
+
                 // Создаем продажу
                 var sale = new Sale
                 {
@@ -358,14 +376,30 @@ namespace CarShowroom.ViewModels
                 var selectedAdditionIds = _selectedAdditions.Select(a => a.Id).ToList();
 
                 // Сохраняем продажу
-                await _saleService.CreateSaleAsync(sale, selectedAdditionIds, selectedDiscountIds);
+                var createdSale = await _saleService.CreateSaleAsync(sale, selectedAdditionIds, selectedDiscountIds);
 
-                await Shell.Current.DisplayAlert("Успех", "Продажа успешно создана", "OK");
+                // Предлагаем сгенерировать PDF договор
+                var generatePdf = await Shell.Current.DisplayAlert(
+                    "Успех",
+                    "Продажа успешно создана. Сгенерировать PDF договор?",
+                    "Да",
+                    "Нет");
+
+                if (generatePdf)
+                {
+                    await GenerateContractAsync(createdSale, client, finalPrice, price);
+                }
+
                 await Shell.Current.GoToAsync("..");
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlert("Ошибка", $"Не удалось создать продажу: {ex.Message}", "OK");
+                var errorMessage = $"Не удалось создать продажу: {ex.Message}";
+                if (ex.InnerException != null)
+                {
+                    errorMessage += $"\n\nДетали: {ex.InnerException.Message}";
+                }
+                await Shell.Current.DisplayAlert("Ошибка", errorMessage, "OK");
             }
         }
 
@@ -373,6 +407,124 @@ namespace CarShowroom.ViewModels
         private async Task CancelAsync()
         {
             await Shell.Current.GoToAsync("..");
+        }
+
+        private async Task GenerateContractAsync(Sale sale, User client, decimal finalPrice, decimal basePrice)
+        {
+            try
+            {
+                // Получаем полную информацию о продаже с AsNoTracking
+                var fullSale = await _saleService.GetSaleByIdAsync(sale.Id);
+                if (fullSale == null || fullSale.Car == null)
+                {
+                    await Shell.Current.DisplayAlert("Ошибка", "Не удалось загрузить данные о продаже", "OK");
+                    return;
+                }
+
+                // Получаем опции и скидки
+                var additions = await _saleService.GetSaleAdditionsAsync(sale.Id);
+                var discounts = await _saleService.GetSaleDiscountsAsync(sale.Id);
+
+                // Генерируем PDF
+                var pdfBytes = _pdfContractService.GenerateContract(
+                    fullSale,
+                    client,
+                    SelectedManager!.Manager,
+                    fullSale.Car,
+                    additions,
+                    discounts,
+                    basePrice,
+                    finalPrice);
+
+                // Сохраняем PDF
+                await SavePdfFileAsync(pdfBytes, $"Договор_№{sale.Id}_{DateTime.Now:yyyyMMdd}.pdf");
+            }
+            catch (Exception ex)
+            {
+                await Shell.Current.DisplayAlert("Ошибка", $"Не удалось сгенерировать PDF: {ex.Message}", "OK");
+            }
+        }
+
+        private async Task SavePdfFileAsync(byte[] pdfBytes, string fileName)
+        {
+            try
+            {
+                // Используем FileSaver для выбора места сохранения, если доступен
+                if (_fileSaver != null)
+                {
+                    using var stream = new MemoryStream(pdfBytes);
+                    var cancellationToken = CancellationToken.None;
+                    var fileSaverResult = await _fileSaver.SaveAsync(fileName, stream, cancellationToken);
+                    
+                    if (fileSaverResult.IsSuccessful)
+                    {
+                        await Shell.Current.DisplayAlert("Успех", 
+                            $"PDF договор сохранен:\n{fileSaverResult.FilePath}\n\n" +
+                            $"Размер файла: {pdfBytes.Length / 1024} КБ", 
+                            "OK");
+                        return;
+                    }
+                    else
+                    {
+                        // Если пользователь отменил выбор или произошла ошибка
+                        if (fileSaverResult.Exception != null)
+                        {
+                            // Если пользователь отменил, просто сообщаем об этом
+                            if (fileSaverResult.Exception.Message.Contains("cancel", StringComparison.OrdinalIgnoreCase) ||
+                                fileSaverResult.Exception.Message.Contains("отмен", StringComparison.OrdinalIgnoreCase))
+                            {
+                                await Shell.Current.DisplayAlert("Информация", 
+                                    "Сохранение файла отменено пользователем", 
+                                    "OK");
+                                return;
+                            }
+                            else
+                            {
+                                // При другой ошибке сохраняем в кэш как резервный вариант
+                                await SaveToCacheAsync(pdfBytes, fileName, fileSaverResult.Exception.Message);
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            await SaveToCacheAsync(pdfBytes, fileName, "Неизвестная ошибка");
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    // Если FileSaver не доступен, сохраняем в кэш
+                    await SaveToCacheAsync(pdfBytes, fileName, "FileSaver не доступен");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Если FileSaver не доступен, сохраняем в кэш
+                await SaveToCacheAsync(pdfBytes, fileName, ex.Message);
+            }
+        }
+
+        private async Task SaveToCacheAsync(byte[] pdfBytes, string fileName, string errorMessage)
+        {
+            try
+            {
+                var cacheDir = FileSystem.CacheDirectory;
+                var filePath = Path.Combine(cacheDir, fileName);
+                await File.WriteAllBytesAsync(filePath, pdfBytes);
+                
+                await Shell.Current.DisplayAlert("Информация", 
+                    $"PDF договор сохранен в кэш:\n{filePath}\n\n" +
+                    $"Размер файла: {pdfBytes.Length / 1024} КБ\n\n" +
+                    $"Примечание: {errorMessage}", 
+                    "OK");
+            }
+            catch (Exception ex)
+            {
+                await Shell.Current.DisplayAlert("Ошибка", 
+                    $"Не удалось сохранить PDF файл: {ex.Message}", 
+                    "OK");
+            }
         }
     }
 

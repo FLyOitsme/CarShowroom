@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using DataLayer.Entities;
 using CarShowroom.Services;
+using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Storage;
 
 namespace CarShowroom
 {
@@ -12,6 +14,7 @@ namespace CarShowroom
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -31,6 +34,10 @@ namespace CarShowroom
             builder.Services.AddScoped<CarService>();
             builder.Services.AddScoped<SaleService>();
             builder.Services.AddScoped<UserService>();
+            builder.Services.AddScoped<PdfContractService>();
+            
+            // Регистрация FileSaver
+            builder.Services.AddSingleton<IFileSaver>(FileSaver.Default);
 
             // Регистрация ViewModels
             builder.Services.AddTransient<ViewModels.MainPageViewModel>();
@@ -38,6 +45,10 @@ namespace CarShowroom
             builder.Services.AddTransient<ViewModels.AddEditCarPageViewModel>();
             builder.Services.AddTransient<ViewModels.CreateSalePageViewModel>();
             builder.Services.AddTransient<ViewModels.SalesListPageViewModel>();
+            
+            // Регистрация FileSaver для ViewModels
+            builder.Services.AddSingleton<CommunityToolkit.Maui.Storage.IFileSaver>(
+                CommunityToolkit.Maui.Storage.FileSaver.Default);
 
             // Регистрация страниц
             builder.Services.AddTransient<MainPage>();

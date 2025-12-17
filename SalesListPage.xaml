@@ -32,9 +32,10 @@
                         Stroke="{StaticResource Gray200}"
                         BackgroundColor="White"
                         StrokeShape="RoundRectangle 12">
-                        <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+                        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto">
                             <Label 
                                 Grid.Row="0"
+                                Grid.ColumnSpan="2"
                                 FontSize="18"
                                 FontAttributes="Bold"
                                 TextColor="{StaticResource Black}">
@@ -48,8 +49,9 @@
                             
                             <Label 
                                 Grid.Row="1"
+                                Grid.ColumnSpan="2"
                                 FontSize="14"
-                                TextColor="{StaticResource Gray500}">
+                                TextColor="{StaticResource Gray900}">
                                 <Label.Text>
                                     <MultiBinding StringFormat="{}Менеджер: {0} {1}">
                                         <Binding Path="Manager.Name" />
@@ -60,8 +62,9 @@
                             
                             <Label 
                                 Grid.Row="2"
+                                Grid.ColumnSpan="2"
                                 FontSize="14"
-                                TextColor="{StaticResource Gray500}">
+                                TextColor="{StaticResource Gray900}">
                                 <Label.Text>
                                     <MultiBinding StringFormat="{}Дата: {0:dd.MM.yyyy}">
                                         <Binding Path="Date" />
@@ -71,6 +74,7 @@
                             
                             <Label 
                                 Grid.Row="3"
+                                Grid.Column="0"
                                 FontSize="20"
                                 FontAttributes="Bold"
                                 TextColor="{StaticResource AdobeAccent}">
@@ -80,6 +84,17 @@
                                     </MultiBinding>
                                 </Label.Text>
                             </Label>
+                            
+                            <Button 
+                                Grid.Row="3"
+                                Grid.Column="1"
+                                Text="Договор"
+                                FontSize="12"
+                                Padding="12,6"
+                                BackgroundColor="{StaticResource AdobeAccent}"
+                                TextColor="White"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.GenerateContractForSaleCommand}"
+                                CommandParameter="{Binding .}" />
                         </Grid>
                     </Border>
                 </DataTemplate>
