@@ -8,19 +8,20 @@
     <Grid RowDefinitions="Auto,*">
         <!-- Кнопка добавления -->
         <Button 
-            x:Name="AddSaleButton"
             Text="+ Создать продажу"
             Grid.Row="0"
             Margin="16,8"
             BackgroundColor="{StaticResource AdobeAccent}"
             TextColor="White"
-            Clicked="OnAddSaleClicked" />
+            Command="{Binding AddSaleCommand}" />
 
         <!-- Список продаж -->
         <CollectionView 
             x:Name="SalesCollectionView"
             Grid.Row="1"
             SelectionMode="Single"
+            ItemsSource="{Binding Sales}"
+            SelectedItem="{Binding SelectedSale}"
             SelectionChanged="OnSaleSelected">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="entities:Sale">

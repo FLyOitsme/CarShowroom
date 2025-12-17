@@ -32,6 +32,20 @@ namespace CarShowroom
             builder.Services.AddScoped<SaleService>();
             builder.Services.AddScoped<UserService>();
 
+            // Регистрация ViewModels
+            builder.Services.AddTransient<ViewModels.MainPageViewModel>();
+            builder.Services.AddTransient<ViewModels.CarDetailsPageViewModel>();
+            builder.Services.AddTransient<ViewModels.AddEditCarPageViewModel>();
+            builder.Services.AddTransient<ViewModels.CreateSalePageViewModel>();
+            builder.Services.AddTransient<ViewModels.SalesListPageViewModel>();
+
+            // Регистрация страниц
+            builder.Services.AddTransient<MainPage>();
+            builder.Services.AddTransient<CarDetailsPage>();
+            builder.Services.AddTransient<AddEditCarPage>();
+            builder.Services.AddTransient<CreateSalePage>();
+            builder.Services.AddTransient<SalesListPage>();
+
             return builder.Build();
         }
     }

@@ -7,14 +7,18 @@
     Shell.FlyoutBehavior="Disabled"
     Title="Автосалон">
 
-    <ShellContent
-        Title="Каталог"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <ShellContent
+            Title="Каталог"
+            Icon="dotnet_bot.png"
+            ContentTemplate="{DataTemplate local:MainPage}"
+            Route="MainPage" />
 
-    <ShellContent
-        Title="Продажи"
-        ContentTemplate="{DataTemplate local:SalesListPage}"
-        Route="SalesListPage" />
+        <ShellContent
+            Title="Продажи"
+            Icon="dotnet_bot.png"
+            ContentTemplate="{DataTemplate local:SalesListPage}"
+            Route="SalesListPage" />
+    </TabBar>
 
 </Shell>

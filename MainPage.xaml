@@ -29,9 +29,8 @@
             Stroke="{StaticResource Gray200}"
             Padding="16,12">
             <SearchBar 
-                x:Name="SearchBar"
                 Placeholder="Поиск по марке, модели..."
-                TextChanged="OnSearchTextChanged"
+                Text="{Binding SearchText}"
                 BackgroundColor="Transparent" />
         </Border>
 
@@ -40,6 +39,8 @@
             x:Name="CarsCollectionView"
             Grid.Row="2"
             SelectionMode="Single"
+            ItemsSource="{Binding Cars}"
+            SelectedItem="{Binding SelectedCar}"
             SelectionChanged="OnCarSelected"
             BackgroundColor="Transparent">
             <CollectionView.ItemTemplate>
@@ -52,7 +53,8 @@
                         BackgroundColor="White"
                         StrokeShape="RoundRectangle 12">
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnCarTapped" CommandParameter="{Binding .}" />
+                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.CarSelectedCommand}" 
+                                                  CommandParameter="{Binding .}" />
                         </Border.GestureRecognizers>
                         
                         <Grid Padding="16" RowDefinitions="Auto,Auto,Auto,Auto">
@@ -99,7 +101,7 @@
                                 Grid.Row="1"
                                 Text="{Binding Color}"
                                 FontSize="14"
-                                TextColor="{StaticResource Gray500}"
+                                TextColor="{StaticResource Gray900}"
                                 Margin="12,0,0,8"
                                 MaxLines="2" />
 
@@ -110,7 +112,7 @@
                                 Margin="12,0,0,8">
                                 <Label 
                                     FontSize="12"
-                                    TextColor="{StaticResource Gray500}">
+                                    TextColor="{StaticResource Gray900}">
                                     <Label.Text>
                                         <MultiBinding StringFormat="{}{0:F1} л">
                                             <Binding Path="EngVol" />
@@ -120,10 +122,10 @@
                                 <Label 
                                     Text="{Binding Transmission.Name}" 
                                     FontSize="12"
-                                    TextColor="{StaticResource Gray500}" />
+                                    TextColor="{StaticResource Gray900}" />
                                 <Label 
                                     FontSize="12"
-                                    TextColor="{StaticResource Gray500}">
+                                    TextColor="{StaticResource Gray900}">
                                     <Label.Text>
                                         <MultiBinding StringFormat="{}{0:N0} км">
                                             <Binding Path="Mileage" />
@@ -153,7 +155,6 @@
 
         <!-- Кнопка добавления -->
         <Button 
-            x:Name="AddButton"
             Text="+"
             FontSize="32"
             WidthRequest="56"
@@ -164,7 +165,7 @@
             HorizontalOptions="End"
             VerticalOptions="End"
             Margin="24"
-            Clicked="OnAddCarClicked" />
+            Command="{Binding AddCarCommand}" />
     </Grid>
 
 </ContentPage>

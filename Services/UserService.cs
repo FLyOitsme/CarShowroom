@@ -148,6 +148,19 @@ namespace CarShowroom.Services
         {
             return await _context.RoleTypes.ToListAsync();
         }
+
+        public async Task<List<User>> GetAllClientsAsync()
+        {
+            // Получаем всех клиентов (пользователей, которые не являются менеджерами)
+            // Клиенты обычно имеют RoleTypeId = 3 (Продавец) или другую роль клиента
+            // Или можно получить всех пользователей, исключая менеджеров
+            return await _context.Users
+                .Include(u => u.RoleType)
+                .Where(u => u.RoleTypeId != 2 && u.RoleTypeId != 1) // Исключаем менеджеров и админов
+                .OrderBy(u => u.Surname)
+                .ThenBy(u => u.Name)
+                .ToListAsync();
+        }
     }
 }
 

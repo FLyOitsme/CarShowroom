@@ -56,6 +56,7 @@
 
 	<ItemGroup>
 		<!-- MAUI пакеты -->
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
@@ -99,11 +100,7 @@
 			<_FixedRcwLines Include="#pragma warning disable CS0433 // Тип существует в нескольких сборках (Microsoft.Web.WebView2.Core и Microsoft.WinUI)" />
 			<_FixedRcwLines Include="@(_RcwLines)" />
 		</ItemGroup>
-		<WriteLinesToFile 
-			File="$(RcwFile)" 
-			Lines="@(_FixedRcwLines)"
-			Overwrite="true"
-			Condition="Exists('$(RcwFile)')" />
+		<WriteLinesToFile File="$(RcwFile)" Lines="@(_FixedRcwLines)" Overwrite="true" Condition="Exists('$(RcwFile)')" />
 	</Target>
 
 </Project>

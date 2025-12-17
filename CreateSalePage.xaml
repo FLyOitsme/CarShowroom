@@ -9,160 +9,278 @@
         <StackLayout Padding="20" Spacing="16">
             
             <!-- Выбор автомобиля -->
-            <Frame>
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
                 <StackLayout Spacing="12">
-                    <Label Text="Автомобиль" FontSize="18" FontAttributes="Bold" />
-                    <Picker x:Name="CarPicker" 
-                            Title="Выберите автомобиль *" />
+                    <Label Text="Автомобиль" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    <Picker Title="Выберите автомобиль *"
+                            ItemsSource="{Binding Cars}"
+                            SelectedItem="{Binding SelectedCar}"
+                            ItemDisplayBinding="{Binding DisplayText}"
+                            TextColor="{StaticResource Black}"
+                            TitleColor="{StaticResource Gray900}" />
                 </StackLayout>
             </Frame>
 
             <!-- Выбор менеджера -->
-            <Frame>
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
                 <StackLayout Spacing="12">
-                    <Label Text="Менеджер" FontSize="18" FontAttributes="Bold" />
-                    <Picker x:Name="ManagerPicker" 
-                            Title="Выберите менеджера *" />
+                    <Label Text="Менеджер" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    <Picker Title="Выберите менеджера *"
+                            ItemsSource="{Binding Managers}"
+                            SelectedItem="{Binding SelectedManager}"
+                            ItemDisplayBinding="{Binding DisplayText}"
+                            TextColor="{StaticResource Black}"
+                            TitleColor="{StaticResource Gray900}" />
                 </StackLayout>
             </Frame>
 
             <!-- Информация о клиенте -->
-            <Frame>
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
                 <StackLayout Spacing="12">
-                    <Label Text="Клиент" FontSize="18" FontAttributes="Bold" />
+                    <Label Text="Клиент" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
                     
-                    <SearchBar x:Name="ClientSearchBar"
-                               Placeholder="Поиск клиента по ФИО..."
-                               SearchButtonPressed="OnSearchClientClicked"
-                               TextChanged="OnClientSearchTextChanged" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <SearchBar Grid.Column="0"
+                                   Placeholder="Поиск клиента по ФИО..."
+                                   Text="{Binding ClientSearchText}"
+                                   TextChanged="OnClientSearchTextChanged"
+                                   SearchButtonPressed="OnSearchButtonPressed"
+                                   TextColor="{StaticResource Gray900}" />
+                        <Button Grid.Column="1"
+                                Text="Все"
+                                Command="{Binding ToggleAllClientsCommand}"
+                                BackgroundColor="{StaticResource Gray400}"
+                                TextColor="White"
+                                WidthRequest="60"
+                                FontSize="12" />
+                    </Grid>
                     
-                    <CollectionView x:Name="ClientsCollectionView"
-                                    SelectionMode="Single"
-                                    SelectionChanged="OnClientSelected"
-                                    HeightRequest="120"
-                                    IsVisible="False">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="entities:User">
-                                <Border Margin="0,4"
-                                        Padding="12"
-                                        StrokeThickness="1"
-                                        Stroke="{StaticResource Gray300}"
-                                        BackgroundColor="White"
-                                        StrokeShape="RoundRectangle 8">
-                                    <Label Text="{Binding Surname, StringFormat='{}{0} {1} {2}'}" 
-                                           TextColor="{StaticResource Black}" />
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
+                            BackgroundColor="White"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="8"
+                            IsVisible="{Binding IsClientsVisible}">
+                        <CollectionView x:Name="ClientsCollectionView"
+                                        ItemsSource="{Binding FoundClients}"
+                                        SelectionMode="Single"
+                                        SelectedItem="{Binding SelectedClient}"
+                                        SelectionChanged="OnClientSelected"
+                                        HeightRequest="150"
+                                        MaximumHeightRequest="200">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="entities:User">
+                                    <Border Margin="0,2"
+                                            Padding="12,10"
+                                            StrokeThickness="1"
+                                            Stroke="{StaticResource Gray200}"
+                                            BackgroundColor="White"
+                                            StrokeShape="RoundRectangle 4">
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                            <Label Grid.Column="0"
+                                                   FontSize="14"
+                                                   TextColor="{StaticResource Black}"
+                                                   VerticalOptions="Center">
+                                                <Label.Text>
+                                                    <MultiBinding StringFormat="{}{0} {1} {2}">
+                                                        <Binding Path="Surname" />
+                                                        <Binding Path="Name" />
+                                                        <Binding Path="Patronyc" />
+                                                    </MultiBinding>
+                                                </Label.Text>
+                                            </Label>
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding Login}"
+                                                   FontSize="12"
+                                                   TextColor="{StaticResource Gray600}"
+                                                   VerticalOptions="Center" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Border>
                     
-                    <Entry x:Name="ClientNameEntry" 
-                           Placeholder="ФИО клиента *" />
+                    <Label Text="Или введите данные нового клиента:" 
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Gray900}"
+                           Margin="0,8,0,0" />
                     
-                    <Entry x:Name="ClientPhoneEntry" 
-                           Placeholder="Телефон (необязательно)"
-                           Keyboard="Telephone" />
+                    <Entry Placeholder="ФИО клиента *"
+                           Text="{Binding ClientName}"
+                           TextColor="{StaticResource Black}" />
                     
-                    <Editor x:Name="ClientAddressEditor" 
-                            Placeholder="Адрес (необязательно)"
-                            HeightRequest="80" />
+                    <Entry Placeholder="Телефон (необязательно)"
+                           Keyboard="Telephone"
+                           Text="{Binding ClientPhone}"
+                           TextColor="{StaticResource Black}" />
                     
-                    <Button Text="Найти существующего клиента" 
-                            Clicked="OnFindClientClicked"
-                            BackgroundColor="{StaticResource Gray400}"
-                            TextColor="White" />
+                    <Editor Placeholder="Адрес (необязательно)"
+                            HeightRequest="80"
+                            Text="{Binding ClientAddress}"
+                            TextColor="{StaticResource Black}" />
                 </StackLayout>
             </Frame>
 
             <!-- Дата продажи -->
-            <Frame>
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
                 <StackLayout Spacing="12">
-                    <Label Text="Дата продажи" FontSize="18" FontAttributes="Bold" />
-                    <DatePicker x:Name="SaleDatePicker" Date="{Binding Date}" />
+                    <Label Text="Дата продажи" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    <DatePicker Date="{Binding SaleDate}"
+                                TextColor="{StaticResource Gray900}" />
                 </StackLayout>
             </Frame>
 
             <!-- Цена -->
-            <Frame>
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
                 <StackLayout Spacing="12">
-                    <Label Text="Цена" FontSize="18" FontAttributes="Bold" />
-                    <Entry x:Name="PriceEntry" 
-                           Placeholder="Цена автомобиля"
-                           Keyboard="Numeric" />
-                    <Label x:Name="FinalPriceLabel" 
-                           Text="Итоговая цена: 0 ₽"
+                    <Label Text="Цена" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    <Entry Placeholder="Цена автомобиля"
+                           PlaceholderColor="{StaticResource Gray500}"
+                           Keyboard="Numeric"
+                           Text="{Binding Price}"
+                           TextColor="{StaticResource Black}" />
+                    <Label Text="{Binding FinalPrice}"
                            FontSize="16"
                            FontAttributes="Bold"
-                           TextColor="{StaticResource AdobeAccent}" />
+                           TextColor="{StaticResource AdobeAccent}"
+                           Margin="0,8,0,0" />
                 </StackLayout>
             </Frame>
 
             <!-- Дополнительные опции -->
-            <Frame>
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
                 <StackLayout Spacing="12">
-                    <Label Text="Дополнительные опции" FontSize="18" FontAttributes="Bold" />
-                    <CollectionView x:Name="AdditionsCollectionView" 
-                                    SelectionMode="Multiple"
-                                    HeightRequest="150">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="entities:Addition">
-                                <Grid Padding="10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <CheckBox Grid.Column="0" />
-                                    <Label Grid.Column="1" 
-                                           Text="{Binding Name}" 
-                                           VerticalOptions="Center" />
-                                    <Label Grid.Column="2" 
-                                           Text="{Binding Cost, StringFormat='{0:N0} ₽'}" 
-                                           VerticalOptions="Center" />
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                    <Label Text="Дополнительные опции" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
+                            BackgroundColor="White"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="8">
+                        <CollectionView ItemsSource="{Binding Additions}"
+                                        SelectionMode="Multiple"
+                                        SelectionChanged="OnAdditionsSelectionChanged"
+                                        HeightRequest="150">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="entities:Addition">
+                                    <Grid Margin="0,2"
+                                          Padding="12,8"
+                                          ColumnDefinitions="*,Auto"
+                                          ColumnSpacing="12"
+                                          BackgroundColor="White">
+                                        <Label Grid.Column="0" 
+                                               Text="{Binding Name}" 
+                                               FontSize="14"
+                                               TextColor="{StaticResource Black}"
+                                               VerticalOptions="Center" />
+                                        <Label Grid.Column="1" 
+                                               Text="{Binding Cost, StringFormat='{0:N0} ₽'}" 
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource AdobeAccent}"
+                                               VerticalOptions="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Border>
+                    <Label Text="Выберите опции, нажав на них" 
+                           FontSize="12"
+                           TextColor="{StaticResource Gray900}"
+                           HorizontalOptions="Center" />
                 </StackLayout>
             </Frame>
 
             <!-- Скидки -->
-            <Frame>
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
                 <StackLayout Spacing="12">
-                    <Label Text="Скидки" FontSize="18" FontAttributes="Bold" />
-                    <CollectionView x:Name="DiscountsCollectionView" 
-                                    SelectionMode="Multiple"
-                                    HeightRequest="150">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="entities:Discount">
-                                <Grid Padding="10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <CheckBox Grid.Column="0" />
-                                    <Label Grid.Column="1" 
-                                           Text="{Binding Name}" 
-                                           VerticalOptions="Center" />
-                                    <Label Grid.Column="2" 
-                                           Text="{Binding Cost, StringFormat='{0}%'}" 
-                                           VerticalOptions="Center" />
-                                </Grid>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                    <Label Text="Скидки" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
+                            BackgroundColor="White"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="8">
+                        <CollectionView ItemsSource="{Binding Discounts}"
+                                        SelectionMode="Multiple"
+                                        SelectionChanged="OnDiscountsSelectionChanged"
+                                        HeightRequest="150">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="entities:Discount">
+                                    <Grid Margin="0,2"
+                                          Padding="12,8"
+                                          ColumnDefinitions="*,Auto"
+                                          ColumnSpacing="12"
+                                          BackgroundColor="White">
+                                        <Label Grid.Column="0" 
+                                               Text="{Binding Name}" 
+                                               FontSize="14"
+                                               TextColor="{StaticResource Black}"
+                                               VerticalOptions="Center" />
+                                        <Label Grid.Column="1" 
+                                               Text="{Binding Cost, StringFormat='{0}%'}" 
+                                               FontSize="14"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource AdobeAccent}"
+                                               VerticalOptions="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Border>
+                    <Label Text="Выберите скидки, нажав на них" 
+                           FontSize="12"
+                           TextColor="{StaticResource Gray900}"
+                           HorizontalOptions="Center" />
                 </StackLayout>
             </Frame>
 
             <!-- Кнопки -->
-            <Button Text="Создать продажу" 
-                    Clicked="OnCreateSaleClicked"
-                    BackgroundColor="{StaticResource AdobeAccent}"
-                    TextColor="White" />
-            
-            <Button Text="Отмена" 
-                    Clicked="OnCancelClicked" />
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                <Button Text="Создать продажу" 
+                        Command="{Binding CreateSaleCommand}"
+                        BackgroundColor="{StaticResource AdobeAccent}"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        HeightRequest="50" />
+                
+                <Button Text="Отмена" 
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="{StaticResource Gray400}"
+                        TextColor="White"
+                        FontSize="16"
+                        HeightRequest="50"
+                        Grid.Column="1" />
+            </Grid>
         </StackLayout>
     </ScrollView>
 </ContentPage>

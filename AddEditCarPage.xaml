@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CarShowroom.AddEditCarPage"
-             Title="Добавить автомобиль"
+             Title="{Binding Title}"
              BackgroundColor="White">
 
     <ScrollView>
@@ -36,31 +36,35 @@
                         TextColor="{StaticResource Black}" />
 
                     <Picker 
-                        x:Name="BrandPicker"
                         Title="Марка *"
-                        TitleColor="{StaticResource Gray500}" />
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding Brands}"
+                        SelectedItem="{Binding SelectedBrand}"
+                        ItemDisplayBinding="{Binding Name}" />
 
                     <Picker 
-                        x:Name="ModelPicker"
                         Title="Модель *"
-                        TitleColor="{StaticResource Gray500}" />
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding Models}"
+                        SelectedItem="{Binding SelectedModel}"
+                        ItemDisplayBinding="{Binding Name}" />
 
                     <Entry 
-                        x:Name="YearEntry"
                         Placeholder="Год *"
                         PlaceholderColor="{StaticResource Gray500}"
-                        Keyboard="Numeric" />
+                        Keyboard="Numeric"
+                        Text="{Binding Year}" />
 
                     <Entry 
-                        x:Name="ColorEntry"
                         Placeholder="Цвет *"
-                        PlaceholderColor="{StaticResource Gray500}" />
+                        PlaceholderColor="{StaticResource Gray500}"
+                        Text="{Binding Color}" />
 
                     <Entry 
-                        x:Name="PriceEntry"
                         Placeholder="Цена (₽) *"
                         PlaceholderColor="{StaticResource Gray500}"
-                        Keyboard="Numeric" />
+                        Keyboard="Numeric"
+                        Text="{Binding Price}" />
                 </VerticalStackLayout>
             </Border>
 
@@ -79,61 +83,69 @@
                         TextColor="{StaticResource Black}" />
 
                     <Picker 
-                        x:Name="EngineTypePicker"
                         Title="Тип двигателя *"
-                        TitleColor="{StaticResource Gray500}" />
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding EngineTypes}"
+                        SelectedItem="{Binding SelectedEngineType}"
+                        ItemDisplayBinding="{Binding Name}" />
 
                     <Entry 
-                        x:Name="EngineVolumeEntry"
                         Placeholder="Объем двигателя (л) *"
                         PlaceholderColor="{StaticResource Gray500}"
-                        Keyboard="Numeric" />
+                        Keyboard="Numeric"
+                        Text="{Binding EngineVolume}" />
 
                     <Entry 
-                        x:Name="PowerEntry"
                         Placeholder="Мощность (л.с.)"
                         PlaceholderColor="{StaticResource Gray500}"
-                        Keyboard="Numeric" />
+                        Keyboard="Numeric"
+                        Text="{Binding Power}" />
 
                     <Entry 
-                        x:Name="MileageEntry"
                         Placeholder="Пробег (км) *"
                         PlaceholderColor="{StaticResource Gray500}"
-                        Keyboard="Numeric" />
+                        Keyboard="Numeric"
+                        Text="{Binding Mileage}" />
 
                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
                         <Switch 
-                            x:Name="StockSwitch"
                             Grid.Column="0"
-                            IsToggled="True"
+                            IsToggled="{Binding IsInStock}"
                             VerticalOptions="Center" />
                         <Label 
                             Grid.Column="1"
-                            x:Name="StockLabel"
-                            Text="В наличии"
+                            Text="{Binding StockLabel}"
                             VerticalOptions="Center"
                             TextColor="{StaticResource Black}" />
                     </Grid>
 
                     <Picker 
-                        x:Name="TransmissionPicker"
                         Title="Коробка передач *"
-                        TitleColor="{StaticResource Gray500}" />
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding Transmissions}"
+                        SelectedItem="{Binding SelectedTransmission}"
+                        ItemDisplayBinding="{Binding Name}" />
 
                     <Picker 
-                        x:Name="CarTypePicker"
                         Title="Тип кузова *"
-                        TitleColor="{StaticResource Gray500}" />
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding CarTypes}"
+                        SelectedItem="{Binding SelectedCarType}"
+                        ItemDisplayBinding="{Binding Name}" />
 
                     <Picker 
-                        x:Name="ConditionPicker"
                         Title="Состояние *"
-                        TitleColor="{StaticResource Gray500}" />
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding ConditionTypes}"
+                        SelectedItem="{Binding SelectedCondition}"
+                        ItemDisplayBinding="{Binding Name}" />
 
                     <Picker 
-                        x:Name="WdTypePicker"
                         Title="Привод *"
-                        TitleColor="{StaticResource Gray500}" />
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding WdTypes}"
+                        SelectedItem="{Binding SelectedWdType}"
+                        ItemDisplayBinding="{Binding Name}" />
                 </VerticalStackLayout>
             </Border>
 
@@ -141,18 +153,16 @@
             <!-- Кнопки -->
             <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,20,0,0">
                 <Button 
-                    x:Name="SaveButton"
                     Text="Сохранить"
                     BackgroundColor="{StaticResource AdobeAccent}"
                     TextColor="White"
-                    Clicked="OnSaveClicked" />
+                    Command="{Binding SaveCarCommand}" />
 
                 <Button 
-                    x:Name="CancelButton"
                     Text="Отмена"
                     BackgroundColor="{StaticResource Gray400}"
                     TextColor="White"
-                    Clicked="OnCancelClicked" />
+                    Command="{Binding CancelCommand}" />
             </Grid>
         </VerticalStackLayout>
     </ScrollView>

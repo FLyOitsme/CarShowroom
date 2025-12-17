@@ -23,7 +23,7 @@
 
             <!-- Название -->
             <Label 
-                x:Name="CarNameLabel"
+                Text="{Binding CarName}"
                 FontSize="24"
                 FontAttributes="Bold"
                 TextColor="{StaticResource Black}"
@@ -31,7 +31,7 @@
 
             <!-- Цена -->
             <Label 
-                x:Name="PriceLabel"
+                Text="{Binding Price}"
                 FontSize="28"
                 FontAttributes="Bold"
                 TextColor="{StaticResource AdobeAccent}"
@@ -61,9 +61,9 @@
                             Grid.Row="0" Grid.Column="0" 
                             Text="Марка:" 
                             FontAttributes="Bold"
-                            TextColor="{StaticResource Gray600}" />
+                            TextColor="{StaticResource Gray900}" />
                         <Label 
-                            x:Name="BrandLabel" 
+                            Text="{Binding Brand}"
                             Grid.Row="0" Grid.Column="1"
                             TextColor="{StaticResource Black}" />
 
@@ -71,9 +71,9 @@
                             Grid.Row="1" Grid.Column="0" 
                             Text="Модель:" 
                             FontAttributes="Bold"
-                            TextColor="{StaticResource Gray600}" />
+                            TextColor="{StaticResource Gray900}" />
                         <Label 
-                            x:Name="ModelLabel" 
+                            Text="{Binding Model}"
                             Grid.Row="1" Grid.Column="1"
                             TextColor="{StaticResource Black}" />
 
@@ -81,9 +81,9 @@
                             Grid.Row="2" Grid.Column="0" 
                             Text="Год:" 
                             FontAttributes="Bold"
-                            TextColor="{StaticResource Gray600}" />
+                            TextColor="{StaticResource Gray900}" />
                         <Label 
-                            x:Name="YearLabel" 
+                            Text="{Binding Year}"
                             Grid.Row="2" Grid.Column="1"
                             TextColor="{StaticResource Black}" />
 
@@ -91,9 +91,9 @@
                             Grid.Row="3" Grid.Column="0" 
                             Text="Цвет:" 
                             FontAttributes="Bold"
-                            TextColor="{StaticResource Gray600}" />
+                            TextColor="{StaticResource Gray900}" />
                         <Label 
-                            x:Name="ColorLabel" 
+                            Text="{Binding Color}"
                             Grid.Row="3" Grid.Column="1"
                             TextColor="{StaticResource Black}" />
 
@@ -101,9 +101,9 @@
                             Grid.Row="4" Grid.Column="0" 
                             Text="Двигатель:" 
                             FontAttributes="Bold"
-                            TextColor="{StaticResource Gray600}" />
+                            TextColor="{StaticResource Gray900}" />
                         <Label 
-                            x:Name="EngineLabel" 
+                            Text="{Binding Engine}"
                             Grid.Row="4" Grid.Column="1"
                             TextColor="{StaticResource Black}" />
 
@@ -111,9 +111,9 @@
                             Grid.Row="5" Grid.Column="0" 
                             Text="Объем:" 
                             FontAttributes="Bold"
-                            TextColor="{StaticResource Gray600}" />
+                            TextColor="{StaticResource Gray900}" />
                         <Label 
-                            x:Name="EngineVolumeLabel" 
+                            Text="{Binding EngineVolume}"
                             Grid.Row="5" Grid.Column="1"
                             TextColor="{StaticResource Black}" />
 
@@ -121,9 +121,9 @@
                             Grid.Row="6" Grid.Column="0" 
                             Text="Пробег:" 
                             FontAttributes="Bold"
-                            TextColor="{StaticResource Gray600}" />
+                            TextColor="{StaticResource Gray900}" />
                         <Label 
-                            x:Name="MileageLabel" 
+                            Text="{Binding Mileage}"
                             Grid.Row="6" Grid.Column="1"
                             TextColor="{StaticResource Black}" />
 
@@ -131,9 +131,9 @@
                             Grid.Row="7" Grid.Column="0" 
                             Text="Коробка:" 
                             FontAttributes="Bold"
-                            TextColor="{StaticResource Gray600}" />
+                            TextColor="{StaticResource Gray900}" />
                         <Label 
-                            x:Name="TransmissionLabel" 
+                            Text="{Binding Transmission}"
                             Grid.Row="7" Grid.Column="1"
                             TextColor="{StaticResource Black}" />
                     </Grid>
@@ -155,39 +155,36 @@
                         TextColor="{StaticResource Black}" />
 
                     <Label 
-                        x:Name="DescriptionLabel"
+                        Text="{Binding Description}"
                         FontSize="14"
-                        TextColor="{StaticResource Gray500}" />
+                        TextColor="{StaticResource Gray900}" />
                 </VerticalStackLayout>
             </Border>
 
             <!-- Кнопки действий -->
             <Grid ColumnDefinitions="*" Margin="0,20,0,0">
                 <Button 
-                    x:Name="CreateContractButton"
                     Text="Оформить продажу"
                     BackgroundColor="{StaticResource AdobeAccent}"
                     TextColor="White"
                     FontSize="16"
                     FontAttributes="Bold"
                     HeightRequest="50"
-                    Clicked="OnCreateContractClicked" />
+                    Command="{Binding CreateSaleCommand}" />
             </Grid>
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,12,0,0">
                 <Button 
-                    x:Name="EditButton"
                     Text="Редактировать"
                     BackgroundColor="{StaticResource Gray400}"
                     TextColor="White"
-                    Clicked="OnEditClicked" />
+                    Command="{Binding EditCarCommand}" />
 
                 <Button 
-                    x:Name="DeleteButton"
                     Text="Удалить"
                     BackgroundColor="#E91E63"
                     TextColor="White"
-                    Clicked="OnDeleteClicked" />
+                    Command="{Binding DeleteCarCommand}" />
             </Grid>
         </VerticalStackLayout>
     </ScrollView>
