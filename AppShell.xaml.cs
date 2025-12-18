@@ -10,6 +10,7 @@ namespace CarShowroom
             Routing.RegisterRoute("CarDetailsPage", typeof(CarDetailsPage));
             Routing.RegisterRoute("AddEditCarPage", typeof(AddEditCarPage));
             Routing.RegisterRoute("CreateSalePage", typeof(CreateSalePage));
+            Routing.RegisterRoute("AddEditDiscountPage", typeof(AddEditDiscountPage));
         }
     }
 }

@@ -178,12 +178,16 @@
                     Text="Редактировать"
                     BackgroundColor="{StaticResource Gray400}"
                     TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
                     Command="{Binding EditCarCommand}" />
 
                 <Button 
                     Text="Удалить"
                     BackgroundColor="#E91E63"
                     TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
                     Command="{Binding DeleteCarCommand}" />
             </Grid>
         </VerticalStackLayout>

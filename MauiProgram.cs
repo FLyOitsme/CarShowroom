@@ -7,6 +7,7 @@ using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Storage;
 using System.Reflection;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CarShowroom
 {
@@ -74,6 +75,13 @@ namespace CarShowroom
             builder.Services.AddTransient<ViewModels.AddEditCarPageViewModel>();
             builder.Services.AddTransient<ViewModels.CreateSalePageViewModel>();
             builder.Services.AddTransient<ViewModels.SalesListPageViewModel>();
+            builder.Services.AddTransient<ViewModels.AddEditDiscountPageViewModel>(sp =>
+            {
+                var saleService = sp.GetRequiredService<ISaleService>();
+                var carService = sp.GetRequiredService<ICarService>();
+                return new ViewModels.AddEditDiscountPageViewModel(saleService, carService);
+            });
+            builder.Services.AddTransient<ViewModels.DiscountsListPageViewModel>();
             
             // Регистрация FileSaver для ViewModels
             builder.Services.AddSingleton<CommunityToolkit.Maui.Storage.IFileSaver>(
@@ -85,6 +93,8 @@ namespace CarShowroom
             builder.Services.AddTransient<AddEditCarPage>();
             builder.Services.AddTransient<CreateSalePage>();
             builder.Services.AddTransient<SalesListPage>();
+            builder.Services.AddTransient<AddEditDiscountPage>();
+            builder.Services.AddTransient<DiscountsListPage>();
 
             return builder.Build();
         }

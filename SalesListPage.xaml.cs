@@ -16,6 +16,7 @@ namespace CarShowroom
         protected override async void OnAppearing()
         {
             base.OnAppearing();
+            // Обновляем список продаж при появлении страницы
             await ViewModel.LoadSalesCommand.ExecuteAsync(null);
         }
 

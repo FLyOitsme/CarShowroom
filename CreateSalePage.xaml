@@ -2,8 +2,13 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:entities="clr-namespace:DataLayer.Entities"
+             xmlns:local="clr-namespace:CarShowroom"
              x:Class="CarShowroom.CreateSalePage"
              Title="Создать продажу">
+    
+    <ContentPage.Resources>
+        <local:DiscountSelectedConverter x:Key="DiscountSelectedConverter" />
+    </ContentPage.Resources>
     
     <ScrollView>
         <StackLayout Padding="20" Spacing="16">
@@ -229,23 +234,35 @@
                             BackgroundColor="White"
                             StrokeShape="RoundRectangle 8"
                             Padding="8">
-                        <CollectionView ItemsSource="{Binding Discounts}"
-                                        SelectionMode="Multiple"
+                        <CollectionView x:Name="DiscountsCollectionView"
+                                        ItemsSource="{Binding ApplicableDiscounts}"
+                                        SelectionMode="Single"
+                                        SelectedItem="{Binding SelectedDiscount}"
                                         SelectionChanged="OnDiscountsSelectionChanged"
                                         HeightRequest="150">
                             <CollectionView.ItemTemplate>
                                 <DataTemplate x:DataType="entities:Discount">
                                     <Grid Margin="0,2"
                                           Padding="12,8"
-                                          ColumnDefinitions="*,Auto"
+                                          ColumnDefinitions="Auto,*,Auto"
                                           ColumnSpacing="12"
                                           BackgroundColor="White">
-                                        <Label Grid.Column="0" 
+                                        <CheckBox Grid.Column="0"
+                                                  VerticalOptions="Center"
+                                                  IsEnabled="False">
+                                            <CheckBox.IsChecked>
+                                                <MultiBinding Converter="{StaticResource DiscountSelectedConverter}">
+                                                    <Binding Path="BindingContext.SelectedDiscount" Source="{RelativeSource AncestorType={x:Type ContentPage}}" />
+                                                    <Binding Path="." />
+                                                </MultiBinding>
+                                            </CheckBox.IsChecked>
+                                        </CheckBox>
+                                        <Label Grid.Column="1" 
                                                Text="{Binding Name}" 
                                                FontSize="14"
                                                TextColor="{StaticResource Black}"
                                                VerticalOptions="Center" />
-                                        <Label Grid.Column="1" 
+                                        <Label Grid.Column="2" 
                                                Text="{Binding Cost, StringFormat='{0}%'}" 
                                                FontSize="14"
                                                FontAttributes="Bold"
@@ -256,10 +273,11 @@
                             </CollectionView.ItemTemplate>
                         </CollectionView>
                     </Border>
-                    <Label Text="Выберите скидки, нажав на них" 
+                    <Label Text="Показаны только применимые скидки. Подходящая скидка применена автоматически. Нажмите на скидку, чтобы отменить её" 
                            FontSize="12"
                            TextColor="{StaticResource Gray900}"
-                           HorizontalOptions="Center" />
+                           HorizontalOptions="Center"
+                           Margin="0,4,0,0" />
                 </StackLayout>
             </Frame>
 

@@ -52,6 +52,7 @@ namespace CarShowroom.Services
         {
             var discountIds = await GetSaleDiscountIdsAsync(saleId);
             return await _context.Discounts
+                .AsNoTracking()
                 .Where(d => discountIds.Contains(d.Id))
                 .ToListAsync();
         }
@@ -229,7 +230,112 @@ namespace CarShowroom.Services
 
         public async Task<List<Discount>> GetAllDiscountsAsync()
         {
-            return await _context.Discounts.ToListAsync();
+            return await _context.Discounts
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<Discount?> GetDiscountByIdAsync(int id)
+        {
+            return await _context.Discounts
+                .AsNoTracking()
+                .FirstOrDefaultAsync(d => d.Id == id);
+        }
+
+        public async Task<Discount> CreateDiscountAsync(Discount discount)
+        {
+            // Получаем следующий доступный Id
+            int nextId = 1;
+            var discountsCount = await _context.Discounts.AsNoTracking().CountAsync();
+            
+            if (discountsCount > 0)
+            {
+                var maxId = await _context.Discounts
+                    .AsNoTracking()
+                    .MaxAsync(d => (int?)d.Id);
+                
+                if (maxId.HasValue)
+                {
+                    nextId = maxId.Value + 1;
+                }
+            }
+
+            // Отсоединяем переданную сущность, если она отслеживается
+            try
+            {
+                var entry = _context.Entry(discount);
+                if (entry.State != EntityState.Detached)
+                {
+                    entry.State = EntityState.Detached;
+                }
+            }
+            catch
+            {
+                // Игнорируем, если сущность не отслеживается
+            }
+
+            // Создаем новую сущность
+            var newDiscount = new Discount
+            {
+                Id = nextId,
+                Name = discount.Name,
+                Description = discount.Description,
+                Cost = discount.Cost
+            };
+
+            _context.Discounts.Add(newDiscount);
+            await _context.SaveChangesAsync();
+
+            return newDiscount;
+        }
+
+        public async Task UpdateDiscountAsync(Discount discount)
+        {
+            // Проверяем, не отслеживается ли уже сущность с таким Id
+            var existingEntity = _context.ChangeTracker.Entries<Discount>()
+                .FirstOrDefault(e => e.Entity.Id == discount.Id);
+
+            if (existingEntity != null)
+            {
+                // Если сущность уже отслеживается, отсоединяем её
+                existingEntity.State = EntityState.Detached;
+            }
+
+            // Отсоединяем переданную сущность, если она отслеживается
+            try
+            {
+                var entry = _context.Entry(discount);
+                if (entry.State != EntityState.Detached)
+                {
+                    entry.State = EntityState.Detached;
+                }
+            }
+            catch
+            {
+                // Игнорируем, если сущность не отслеживается
+            }
+
+            // Создаем новую сущность с теми же данными для обновления
+            var discountToUpdate = new Discount
+            {
+                Id = discount.Id,
+                Name = discount.Name,
+                Description = discount.Description,
+                Cost = discount.Cost
+            };
+
+            _context.Discounts.Update(discountToUpdate);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteDiscountAsync(int id)
+        {
+            var discount = await _context.Discounts.FindAsync(id);
+            if (discount != null)
+            {
+                _context.Discounts.Remove(discount);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<List<int>> GetSaleAdditionIdsAsync(int saleId)
@@ -254,6 +360,7 @@ namespace CarShowroom.Services
                 return basePrice;
 
             var discounts = await _context.Discounts
+                .AsNoTracking()
                 .Where(d => discountIds.Contains(d.Id))
                 .ToListAsync();
 
@@ -279,6 +386,7 @@ namespace CarShowroom.Services
                 return finalPrice;
 
             var discounts = await _context.Discounts
+                .AsNoTracking()
                 .Where(d => discountIds.Contains(d.Id))
                 .ToListAsync();
 
@@ -301,6 +409,48 @@ namespace CarShowroom.Services
                 return finalPrice;
 
             return finalPrice / (1 - totalDiscountPercent / 100);
+        }
+
+        public async Task<int> GetClientPurchaseCountAsync(int? clientId, string? clientName)
+        {
+            // Если есть ID клиента, используем его для поиска
+            if (clientId.HasValue)
+            {
+                var client = await _context.Users
+                    .AsNoTracking()
+                    .Include(u => u.Sales)
+                    .FirstOrDefaultAsync(u => u.Id == clientId.Value);
+                
+                if (client != null && client.Sales != null)
+                {
+                    return client.Sales.Count;
+                }
+            }
+
+            // Если ID нет, но есть имя, пытаемся найти клиента по имени
+            if (!string.IsNullOrWhiteSpace(clientName))
+            {
+                var nameParts = clientName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (nameParts.Length >= 2)
+                {
+                    var surname = nameParts[0];
+                    var name = nameParts[1];
+                    
+                    var client = await _context.Users
+                        .AsNoTracking()
+                        .Include(u => u.Sales)
+                        .Where(u => u.Surname == surname && u.Name == name)
+                        .FirstOrDefaultAsync();
+                    
+                    if (client != null && client.Sales != null)
+                    {
+                        return client.Sales.Count;
+                    }
+                }
+            }
+
+            // Если клиент не найден, значит это первая покупка
+            return 0;
         }
     }
 }

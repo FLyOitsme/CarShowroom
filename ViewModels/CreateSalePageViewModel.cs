@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using CarShowroom.Interfaces;
 using DataLayer.Entities;
 using CommunityToolkit.Maui.Storage;
+using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
 
 namespace CarShowroom.ViewModels
 {
@@ -25,6 +27,9 @@ namespace CarShowroom.ViewModels
 
         [ObservableProperty]
         private List<Discount> _discounts = new();
+
+        [ObservableProperty]
+        private List<Discount> _applicableDiscounts = new();
 
         [ObservableProperty]
         private List<User> _foundClients = new();
@@ -68,9 +73,16 @@ namespace CarShowroom.ViewModels
         [ObservableProperty]
         private bool _showAllClients = false;
 
+        [ObservableProperty]
+        private Discount? _selectedDiscount;
+
+        public bool IsCancelling { get; set; }
+
         private long? _carId;
         private List<Addition> _selectedAdditions = new();
-        private List<Discount> _selectedDiscounts = new();
+        private bool _discountsAutoApplied = false;
+        private bool _isPageActive = false;
+        private CancellationTokenSource? _cancellationTokenSource;
 
         public CreateSalePageViewModel(ICarService carService, ISaleService saleService, IUserService userService, IPdfContractService pdfContractService, IFileSaver? fileSaver = null)
         {
@@ -83,17 +95,89 @@ namespace CarShowroom.ViewModels
 
         public void Initialize(long? carId = null)
         {
+            // Отменяем предыдущие операции, если они есть
+            _cancellationTokenSource?.Cancel();
+            _cancellationTokenSource?.Dispose();
+            
+            _cancellationTokenSource = new CancellationTokenSource();
+            
+            _isPageActive = true;
             _carId = carId;
-            LoadDataCommand.ExecuteAsync(null);
+            
+            // Асинхронно ждем немного перед началом загрузки, чтобы дать время предыдущим операциям завершиться
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(200); // Задержка для завершения предыдущих операций
+                    if (_isPageActive && !_cancellationTokenSource.Token.IsCancellationRequested)
+                    {
+                        await MainThread.InvokeOnMainThreadAsync(() =>
+                        {
+                            if (_isPageActive && !_cancellationTokenSource.Token.IsCancellationRequested)
+                            {
+                                LoadDataCommand.ExecuteAsync(null);
+                            }
+                        });
+                    }
+                }
+                catch { }
+            });
+        }
+
+        public void ClearData()
+        {
+            // Помечаем страницу как неактивной ПЕРЕД отменой операций,
+            // чтобы предотвратить запуск новых операций
+            _isPageActive = false;
+            
+            // Отменяем все активные операции с БД
+            _cancellationTokenSource?.Cancel();
+            
+            // Асинхронно ждем завершения отмены операций (не блокируем UI)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(200); // Задержка для завершения отмены операций
+                }
+                catch { }
+            });
+            
+            // Очищаем все данные формы
+            // Теперь partial методы не будут выполнять операции с БД благодаря проверке _isPageActive
+            SelectedCar = null;
+            SelectedManager = null;
+            SelectedClient = null;
+            ClientSearchText = string.Empty;
+            ClientName = string.Empty;
+            ClientPhone = string.Empty;
+            ClientAddress = string.Empty;
+            SaleDate = DateTime.Now;
+            Price = string.Empty;
+            FinalPrice = "Итоговая цена: 0 ₽";
+            SelectedDiscount = null;
+            ApplicableDiscounts.Clear();
+            FoundClients.Clear();
+            IsClientsVisible = false;
+            ShowAllClients = false;
+            
+            _carId = null;
+            _selectedAdditions.Clear();
+            _discountsAutoApplied = false;
         }
 
         [RelayCommand]
         private async Task LoadDataAsync()
         {
+            if (!_isPageActive || _cancellationTokenSource == null || _cancellationTokenSource.Token.IsCancellationRequested) return;
+            
             try
             {
                 // Загрузка автомобилей
                 var allCars = await _carService.GetAllCarsAsync();
+                if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
+                
                 Cars = allCars.Select(c => new CarDisplayItem
                 {
                     Car = c,
@@ -112,6 +196,7 @@ namespace CarShowroom.ViewModels
 
                 // Загрузка менеджеров
                 var allManagers = await _userService.GetAllManagersAsync();
+                if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
                 Managers = allManagers.Select(m => new ManagerDisplayItem
                 {
                     Manager = m,
@@ -120,12 +205,31 @@ namespace CarShowroom.ViewModels
 
                 // Загрузка всех клиентов
                 AllClients = await _userService.GetAllClientsAsync();
+                if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
 
                 // Загрузка дополнительных опций
                 Additions = await _saleService.GetAllAdditionsAsync();
+                if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
 
                 // Загрузка скидок
                 Discounts = await _saleService.GetAllDiscountsAsync();
+                if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
+                
+                // Автоматически применяем подходящие скидки
+                // Если автомобиль уже выбран, проверяем условия
+                if (SelectedCar != null)
+                {
+                    await CheckAndApplyDiscountsAsync();
+                }
+                else
+                {
+                    // Если автомобиль не выбран, показываем все скидки, но не применяем их
+                    // Условия будут перепроверены при выборе автомобиля
+                    if (Discounts != null && Discounts.Any())
+                    {
+                        ApplicableDiscounts = Discounts.ToList();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -133,9 +237,316 @@ namespace CarShowroom.ViewModels
             }
         }
 
+
+        private async Task CheckAndApplyDiscountsAsync()
+        {
+            if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true || Discounts == null || !Discounts.Any() || SelectedCar == null)
+                return;
+
+            // Получаем количество покупок клиента
+            int purchaseCount = 0;
+            if (SelectedClient != null)
+            {
+                purchaseCount = await _saleService.GetClientPurchaseCountAsync(SelectedClient.Id, null);
+                if (!_isPageActive) return;
+            }
+            else if (!string.IsNullOrWhiteSpace(ClientName))
+            {
+                purchaseCount = await _saleService.GetClientPurchaseCountAsync(null, ClientName);
+                if (!_isPageActive) return;
+            }
+
+            var applicableDiscounts = new List<Discount>();
+            
+            // Выполняем проверки последовательно, чтобы избежать конфликтов с DbContext
+            foreach (var discount in Discounts)
+            {
+                try
+                {
+                    if (await IsDiscountApplicableAsync(discount, SelectedCar.Car, purchaseCount))
+                    {
+                        applicableDiscounts.Add(discount);
+                    }
+                }
+                catch
+                {
+                    // Пропускаем скидку при ошибке проверки
+                    continue;
+                }
+            }
+            
+            // Обновляем список применимых скидок для отображения менеджеру
+            ApplicableDiscounts = applicableDiscounts;
+            
+            // Выбираем только одну скидку - с наибольшим процентом
+            if (applicableDiscounts.Any())
+            {
+                var bestDiscount = applicableDiscounts
+                    .OrderByDescending(d => d.Cost ?? 0)
+                    .First();
+                SelectedDiscount = bestDiscount;
+            }
+            else
+            {
+                SelectedDiscount = null;
+            }
+            
+            _discountsAutoApplied = true;
+            
+            // Вызываем обновление цены синхронно, чтобы избежать параллельных запросов
+            await UpdateFinalPriceAsync();
+            
+            // Уведомляем UI о необходимости обновить выбранные элементы
+            OnDiscountsAutoApplied();
+        }
+
+        private async Task<bool> IsDiscountApplicableAsync(Discount discount, Car car, int clientPurchaseCount)
+        {
+            // Если описание пустое, скидка применяется ко всем автомобилям
+            if (string.IsNullOrWhiteSpace(discount.Description))
+            {
+                return true;
+            }
+
+            var description = discount.Description.ToLower().Trim();
+            
+            // Проверка условий по количеству покупок клиента
+            if (description.Contains("первый_клиент") || description.Contains("первый клиент") || description.Contains("первая покупка"))
+            {
+                if (clientPurchaseCount > 0)
+                    return false;
+            }
+            
+            if (description.Contains("vip_клиент") || description.Contains("vip клиент") || description.Contains("вип клиент"))
+            {
+                if (clientPurchaseCount < 3)
+                    return false;
+            }
+            
+            // Парсим условия из описания
+            // Формат: "цена>1000000", "год<2020", "тип=Седан", "бренд=BMW", "состояние=Новый", "пробег<50000"
+            
+            var conditions = description.Split(new[] { ',', ';', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            foreach (var condition in conditions)
+            {
+                var trimmedCondition = condition.Trim();
+                
+                // Проверка цены
+                if (trimmedCondition.StartsWith("цена>") || trimmedCondition.StartsWith("цена >"))
+                {
+                    if (TryParseValue(trimmedCondition, "цена", out float minPrice))
+                    {
+                        if (car.Cost == null || car.Cost <= minPrice)
+                            return false;
+                    }
+                }
+                else if (trimmedCondition.StartsWith("цена<") || trimmedCondition.StartsWith("цена <"))
+                {
+                    if (TryParseValue(trimmedCondition, "цена", out float maxPrice))
+                    {
+                        if (car.Cost == null || car.Cost >= maxPrice)
+                            return false;
+                    }
+                }
+                else if (trimmedCondition.StartsWith("цена=") || trimmedCondition.StartsWith("цена ="))
+                {
+                    if (TryParseValue(trimmedCondition, "цена", out float exactPrice))
+                    {
+                        if (car.Cost == null || Math.Abs(car.Cost.Value - exactPrice) > 0.01f)
+                            return false;
+                    }
+                }
+                
+                // Проверка года
+                else if (trimmedCondition.StartsWith("год>") || trimmedCondition.StartsWith("год >"))
+                {
+                    if (TryParseValue(trimmedCondition, "год", out float minYear))
+                    {
+                        if (car.Year == null || car.Year <= minYear)
+                            return false;
+                    }
+                }
+                else if (trimmedCondition.StartsWith("год<") || trimmedCondition.StartsWith("год <"))
+                {
+                    if (TryParseValue(trimmedCondition, "год", out float maxYear))
+                    {
+                        if (car.Year == null || car.Year >= maxYear)
+                            return false;
+                    }
+                }
+                else if (trimmedCondition.StartsWith("год=") || trimmedCondition.StartsWith("год ="))
+                {
+                    if (TryParseValue(trimmedCondition, "год", out float exactYear))
+                    {
+                        if (car.Year == null || car.Year != exactYear)
+                            return false;
+                    }
+                }
+                
+                // Проверка типа
+                else if (trimmedCondition.StartsWith("тип=") || trimmedCondition.StartsWith("тип ="))
+                {
+                    var typeName = ExtractValue(trimmedCondition, "тип");
+                    if (!string.IsNullOrEmpty(typeName))
+                    {
+                        if (car.Type?.Name == null || 
+                            !car.Type.Name.Equals(typeName, StringComparison.OrdinalIgnoreCase))
+                            return false;
+                    }
+                }
+                
+                // Проверка бренда
+                else if (trimmedCondition.StartsWith("бренд=") || trimmedCondition.StartsWith("бренд ="))
+                {
+                    var brandName = ExtractValue(trimmedCondition, "бренд");
+                    if (!string.IsNullOrEmpty(brandName))
+                    {
+                        if (car.Model?.Brand?.Name == null || 
+                            !car.Model.Brand.Name.Equals(brandName, StringComparison.OrdinalIgnoreCase))
+                            return false;
+                    }
+                }
+                
+                // Проверка состояния
+                else if (trimmedCondition.StartsWith("состояние=") || trimmedCondition.StartsWith("состояние ="))
+                {
+                    var conditionName = ExtractValue(trimmedCondition, "состояние");
+                    if (!string.IsNullOrEmpty(conditionName))
+                    {
+                        if (car.Condition?.Name == null || 
+                            !car.Condition.Name.Equals(conditionName, StringComparison.OrdinalIgnoreCase))
+                            return false;
+                    }
+                }
+                
+                // Проверка пробега
+                else if (trimmedCondition.StartsWith("пробег<") || trimmedCondition.StartsWith("пробег <"))
+                {
+                    if (TryParseValue(trimmedCondition, "пробег", out float maxMileage))
+                    {
+                        if (car.Mileage == null || car.Mileage >= maxMileage)
+                            return false;
+                    }
+                }
+                else if (trimmedCondition.StartsWith("пробег>") || trimmedCondition.StartsWith("пробег >"))
+                {
+                    if (TryParseValue(trimmedCondition, "пробег", out float minMileage))
+                    {
+                        if (car.Mileage == null || car.Mileage <= minMileage)
+                            return false;
+                    }
+                }
+                
+                // Проверка количества покупок клиента
+                else if (trimmedCondition.StartsWith("покупок>") || trimmedCondition.StartsWith("покупок >"))
+                {
+                    if (TryParseValue(trimmedCondition, "покупок", out float minPurchases))
+                    {
+                        if (clientPurchaseCount <= minPurchases)
+                            return false;
+                    }
+                }
+                else if (trimmedCondition.StartsWith("покупок<") || trimmedCondition.StartsWith("покупок <"))
+                {
+                    if (TryParseValue(trimmedCondition, "покупок", out float maxPurchases))
+                    {
+                        if (clientPurchaseCount >= maxPurchases)
+                            return false;
+                    }
+                }
+                else if (trimmedCondition.StartsWith("покупок>=") || trimmedCondition.StartsWith("покупок >="))
+                {
+                    if (TryParseValue(trimmedCondition, "покупок", out float minPurchases))
+                    {
+                        if (clientPurchaseCount < minPurchases)
+                            return false;
+                    }
+                }
+                else if (trimmedCondition.StartsWith("покупок=") || trimmedCondition.StartsWith("покупок ="))
+                {
+                    if (TryParseValue(trimmedCondition, "покупок", out float exactPurchases))
+                    {
+                        if (clientPurchaseCount != exactPurchases)
+                            return false;
+                    }
+                }
+            }
+            
+            // Если все условия выполнены, скидка применима
+            return true;
+        }
+
+        private bool TryParseValue(string condition, string prefix, out float value)
+        {
+            value = 0;
+            // Ищем оператор сравнения
+            int operatorIndex = -1;
+            if (condition.Contains(">="))
+                operatorIndex = condition.IndexOf(">=");
+            else if (condition.Contains("<="))
+                operatorIndex = condition.IndexOf("<=");
+            else if (condition.Contains(">"))
+                operatorIndex = condition.IndexOf(">");
+            else if (condition.Contains("<"))
+                operatorIndex = condition.IndexOf("<");
+            else if (condition.Contains("="))
+                operatorIndex = condition.IndexOf("=");
+            
+            if (operatorIndex >= 0 && operatorIndex < condition.Length - 1)
+            {
+                var valuePart = condition.Substring(operatorIndex + 1).Trim();
+                // Убираем возможные пробелы и символы оператора
+                valuePart = valuePart.TrimStart('=', '>', '<');
+                if (float.TryParse(valuePart, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out float parsedValue))
+                {
+                    value = parsedValue;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private string ExtractValue(string condition, string prefix)
+        {
+            var index = condition.IndexOf('=');
+            if (index >= 0 && index < condition.Length - 1)
+            {
+                return condition.Substring(index + 1).Trim();
+            }
+            return string.Empty;
+        }
+
+        public event Action? DiscountsAutoApplied;
+        private void OnDiscountsAutoApplied()
+        {
+            DiscountsAutoApplied?.Invoke();
+        }
+
         partial void OnPriceChanged(string value)
         {
+            if (!_isPageActive) return;
             UpdateFinalPriceCommand.ExecuteAsync(null);
+        }
+
+        partial void OnClientNameChanged(string value)
+        {
+            if (!_isPageActive) return;
+            
+            // Перепроверяем условия скидок при изменении имени клиента
+            if (!string.IsNullOrWhiteSpace(value) && Discounts != null && Discounts.Any() && SelectedCar != null)
+            {
+                // Небольшая задержка, чтобы пользователь успел ввести полное имя
+                Task.Delay(500).ContinueWith(async _ =>
+                {
+                    if (!_isPageActive) return;
+                    await MainThread.InvokeOnMainThreadAsync(() =>
+                    {
+                        if (!_isPageActive) return;
+                        RecheckDiscountConditions();
+                    });
+                });
+            }
         }
 
         partial void OnSelectedCarChanged(CarDisplayItem? value)
@@ -143,11 +554,32 @@ namespace CarShowroom.ViewModels
             if (value != null)
             {
                 Price = value.Car.Cost?.ToString("F0") ?? "0";
+                // Перепроверяем условия скидок при выборе автомобиля
+                if (Discounts != null && Discounts.Any())
+                {
+                    RecheckDiscountConditions();
+                }
             }
+            else
+            {
+                // Если автомобиль не выбран, показываем все скидки
+                if (Discounts != null && Discounts.Any())
+                {
+                    ApplicableDiscounts = Discounts.ToList();
+                }
+            }
+        }
+
+        private async void RecheckDiscountConditions()
+        {
+            if (!_isPageActive) return;
+            await CheckAndApplyDiscountsAsync();
         }
 
         partial void OnSelectedClientChanged(User? value)
         {
+            if (!_isPageActive) return;
+            
             if (value != null)
             {
                 var fullName = $"{value.Surname} {value.Name} {value.Patronyc}".Trim();
@@ -156,6 +588,12 @@ namespace CarShowroom.ViewModels
                 IsClientsVisible = false;
                 ShowAllClients = false;
                 ClientSearchText = string.Empty;
+                
+                // Перепроверяем условия скидок при выборе клиента
+                if (Discounts != null && Discounts.Any() && SelectedCar != null)
+                {
+                    RecheckDiscountConditions();
+                }
             }
         }
 
@@ -180,6 +618,8 @@ namespace CarShowroom.ViewModels
             try
             {
                 FoundClients = await _userService.SearchClientsAsync(searchText);
+                if (!_isPageActive) return;
+                
                 IsClientsVisible = FoundClients.Any();
             }
             catch
@@ -213,6 +653,8 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private async Task FindClientAsync()
         {
+            if (!_isPageActive) return;
+            
             if (string.IsNullOrWhiteSpace(ClientName))
             {
                 await Shell.Current.DisplayAlert("Ошибка", "Введите ФИО клиента для поиска", "OK");
@@ -222,6 +664,8 @@ namespace CarShowroom.ViewModels
             try
             {
                 var client = await _userService.SearchClientByNameAsync(ClientName);
+                if (!_isPageActive) return;
+                
                 if (client != null)
                 {
                     SelectedClient = client;
@@ -245,6 +689,8 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private async Task UpdateFinalPriceAsync()
         {
+            if (!_isPageActive) return;
+            
             if (!decimal.TryParse(Price, out decimal basePrice) || basePrice <= 0)
             {
                 FinalPrice = "Итоговая цена: 0 ₽";
@@ -263,12 +709,16 @@ namespace CarShowroom.ViewModels
 
             var priceWithAdditions = basePrice + additionsCost;
 
-            // Применяем скидки
-            var selectedDiscountIds = _selectedDiscounts.Select(d => d.Id).ToList();
+            // Применяем скидку (только одну)
+            var selectedDiscountIds = _selectedDiscount != null 
+                ? new List<int> { _selectedDiscount.Id } 
+                : new List<int>();
 
             try
             {
                 var finalPrice = await _saleService.CalculateFinalPriceAsync(priceWithAdditions, selectedDiscountIds);
+                if (!_isPageActive) return;
+                
                 FinalPrice = $"Итоговая цена: {finalPrice:N0} ₽";
                 if (additionsCost > 0)
                 {
@@ -283,19 +733,27 @@ namespace CarShowroom.ViewModels
 
         public void OnAdditionSelectionChanged(IEnumerable<object> selectedItems)
         {
+            if (!_isPageActive) return;
+            
             _selectedAdditions = selectedItems.OfType<Addition>().ToList();
             UpdateFinalPriceCommand.ExecuteAsync(null);
         }
 
-        public void OnDiscountSelectionChanged(IEnumerable<object> selectedItems)
+        public void OnDiscountSelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
-            _selectedDiscounts = selectedItems.OfType<Discount>().ToList();
+            if (!_isPageActive) return;
+            
+            // При одиночном выборе используем SelectedItem из биндинга
+            // Если SelectedDiscount изменился, обновляем цену
+            _discountsAutoApplied = true;
             UpdateFinalPriceCommand.ExecuteAsync(null);
         }
 
         [RelayCommand]
         private async Task CreateSaleAsync()
         {
+            if (!_isPageActive) return;
+            
             // Валидация
             if (SelectedCar == null)
             {
@@ -348,7 +806,9 @@ namespace CarShowroom.ViewModels
                 }
 
                 var priceWithAdditions = price + additionsCost;
-                var selectedDiscountIds = _selectedDiscounts.Select(d => d.Id).ToList();
+                var selectedDiscountIds = _selectedDiscount != null 
+                    ? new List<int> { _selectedDiscount.Id } 
+                    : new List<int>();
                 var finalPrice = await _saleService.CalculateFinalPriceAsync(priceWithAdditions, selectedDiscountIds);
 
                 // Проверяем, что все данные корректны
@@ -390,7 +850,8 @@ namespace CarShowroom.ViewModels
                     await GenerateContractAsync(createdSale, client, finalPrice, price);
                 }
 
-                await Shell.Current.GoToAsync("..");
+                // Переходим во вкладку "Продажи" после создания продажи
+                await Shell.Current.GoToAsync("//SalesListPage");
             }
             catch (Exception ex)
             {
@@ -406,7 +867,14 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private async Task CancelAsync()
         {
-            await Shell.Current.GoToAsync("..");
+            // Отменяем все активные операции
+            ClearData();
+            
+            // Возвращаемся на предыдущую страницу только если это явный вызов (не из OnDisappearing)
+            if (IsCancelling)
+            {
+                await Shell.Current.GoToAsync("..");
+            }
         }
 
         private async Task GenerateContractAsync(Sale sale, User client, decimal finalPrice, decimal basePrice)

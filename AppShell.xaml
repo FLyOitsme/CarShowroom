@@ -19,6 +19,12 @@
             Icon="dotnet_bot.png"
             ContentTemplate="{DataTemplate local:SalesListPage}"
             Route="SalesListPage" />
+
+        <ShellContent
+            Title="Акции"
+            Icon="dotnet_bot.png"
+            ContentTemplate="{DataTemplate local:DiscountsListPage}"
+            Route="DiscountsListPage" />
     </TabBar>
 
 </Shell>

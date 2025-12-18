@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:entities="clr-namespace:DataLayer.Entities"
+             xmlns:local="clr-namespace:CarShowroom"
+             x:Class="CarShowroom.DiscountsListPage"
+             Title="Акции">
+    
+    <ContentPage.Resources>
+        <local:DiscountDescriptionConverter x:Key="DiscountDescriptionConverter" />
+    </ContentPage.Resources>
+    
+    <Grid RowDefinitions="Auto,*">
+        <!-- Кнопка добавления -->
+        <Button 
+            Text="+ Создать акцию"
+            Grid.Row="0"
+            Margin="16,8"
+            BackgroundColor="{StaticResource AdobeAccent}"
+            TextColor="White"
+            Command="{Binding AddDiscountCommand}" />
+
+        <!-- Список акций -->
+        <CollectionView 
+            x:Name="DiscountsCollectionView"
+            Grid.Row="1"
+            SelectionMode="Single"
+            ItemsSource="{Binding Discounts}"
+            SelectedItem="{Binding SelectedDiscount}"
+            SelectionChanged="OnDiscountSelected">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="entities:Discount">
+                    <Border 
+                        Margin="16,8"
+                        Padding="16"
+                        StrokeThickness="1"
+                        Stroke="{StaticResource Gray200}"
+                        BackgroundColor="White"
+                        StrokeShape="RoundRectangle 12">
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                            <Label 
+                                Grid.Row="0"
+                                Grid.ColumnSpan="2"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource Black}"
+                                Text="{Binding Name}" />
+                            
+                            <Label 
+                                Grid.Row="1"
+                                Grid.ColumnSpan="2"
+                                FontSize="13"
+                                TextColor="{StaticResource Gray600}"
+                                LineBreakMode="WordWrap">
+                                <Label.Text>
+                                    <Binding Path="Description" Converter="{StaticResource DiscountDescriptionConverter}" />
+                                </Label.Text>
+                            </Label>
+                            
+                            <Label 
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                FontSize="20"
+                                FontAttributes="Bold"
+                                TextColor="{StaticResource AdobeAccent}">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="{}{0:F1}%">
+                                        <Binding Path="Cost" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                            
+                            <Button 
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Text="✏️"
+                                FontSize="16"
+                                Padding="12,6"
+                                BackgroundColor="{StaticResource Gray300}"
+                                TextColor="{StaticResource Black}"
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.EditDiscountCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

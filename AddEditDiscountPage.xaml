@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CarShowroom.AddEditDiscountPage"
+             Title="{Binding Title}"
+             BackgroundColor="White">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="16">
+            
+            <!-- Основная информация -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="Основная информация" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Entry Placeholder="Название акции *"
+                           PlaceholderColor="{StaticResource Gray500}"
+                           Text="{Binding Name}"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Entry Placeholder="Размер скидки (%) *"
+                           PlaceholderColor="{StaticResource Gray500}"
+                           Keyboard="Numeric"
+                           Text="{Binding Cost}"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Label Text="Введите размер скидки от 0 до 100 процентов"
+                           FontSize="12"
+                           TextColor="{StaticResource Gray600}"
+                           Margin="0,4,0,0" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Условия по автомобилю -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="Условия по автомобилю" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Entry Grid.Column="0"
+                               Placeholder="Мин. цена (₽)"
+                               PlaceholderColor="{StaticResource Gray500}"
+                               Keyboard="Numeric"
+                               Text="{Binding MinPrice}"
+                               TextColor="{StaticResource Black}" />
+                        <Entry Grid.Column="1"
+                               Placeholder="Макс. цена (₽)"
+                               PlaceholderColor="{StaticResource Gray500}"
+                               Keyboard="Numeric"
+                               Text="{Binding MaxPrice}"
+                               TextColor="{StaticResource Black}" />
+                    </Grid>
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Entry Grid.Column="0"
+                               Placeholder="Мин. год"
+                               PlaceholderColor="{StaticResource Gray500}"
+                               Keyboard="Numeric"
+                               Text="{Binding MinYear}"
+                               TextColor="{StaticResource Black}" />
+                        <Entry Grid.Column="1"
+                               Placeholder="Макс. год"
+                               PlaceholderColor="{StaticResource Gray500}"
+                               Keyboard="Numeric"
+                               Text="{Binding MaxYear}"
+                               TextColor="{StaticResource Black}" />
+                    </Grid>
+                    
+                    <Picker Title="Бренд"
+                            TitleColor="{StaticResource Gray500}"
+                            ItemsSource="{Binding Brands}"
+                            SelectedItem="{Binding SelectedBrand}"
+                            ItemDisplayBinding="{Binding Name}" />
+                    
+                    <Picker Title="Тип автомобиля"
+                            TitleColor="{StaticResource Gray500}"
+                            ItemsSource="{Binding CarTypes}"
+                            SelectedItem="{Binding SelectedCarType}"
+                            ItemDisplayBinding="{Binding Name}" />
+                    
+                    <Picker Title="Состояние"
+                            TitleColor="{StaticResource Gray500}"
+                            ItemsSource="{Binding ConditionTypes}"
+                            SelectedItem="{Binding SelectedCondition}"
+                            ItemDisplayBinding="{Binding Name}" />
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Entry Grid.Column="0"
+                               Placeholder="Мин. пробег (км)"
+                               PlaceholderColor="{StaticResource Gray500}"
+                               Keyboard="Numeric"
+                               Text="{Binding MinMileage}"
+                               TextColor="{StaticResource Black}" />
+                        <Entry Grid.Column="1"
+                               Placeholder="Макс. пробег (км)"
+                               PlaceholderColor="{StaticResource Gray500}"
+                               Keyboard="Numeric"
+                               Text="{Binding MaxMileage}"
+                               TextColor="{StaticResource Black}" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- Условия по клиенту -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="Условия по клиенту" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <CheckBox Grid.Column="0"
+                                  IsChecked="{Binding IsFirstClient}"
+                                  VerticalOptions="Center" />
+                        <Label Grid.Column="1"
+                               Text="Первый клиент (первая покупка)"
+                               FontSize="14"
+                               TextColor="{StaticResource Black}"
+                               VerticalOptions="Center" />
+                    </Grid>
+                    
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <CheckBox Grid.Column="0"
+                                  IsChecked="{Binding IsVipClient}"
+                                  VerticalOptions="Center" />
+                        <Label Grid.Column="1"
+                               Text="VIP клиент (3+ покупок)"
+                               FontSize="14"
+                               TextColor="{StaticResource Black}"
+                               VerticalOptions="Center" />
+                    </Grid>
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <Entry Grid.Column="0"
+                               Placeholder="Мин. покупок"
+                               PlaceholderColor="{StaticResource Gray500}"
+                               Keyboard="Numeric"
+                               Text="{Binding MinPurchases}"
+                               TextColor="{StaticResource Black}" />
+                        <Entry Grid.Column="1"
+                               Placeholder="Макс. покупок"
+                               PlaceholderColor="{StaticResource Gray500}"
+                               Keyboard="Numeric"
+                               Text="{Binding MaxPurchases}"
+                               TextColor="{StaticResource Black}" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- Кнопки -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                <Button Text="Сохранить" 
+                        Command="{Binding SaveDiscountCommand}"
+                        BackgroundColor="{StaticResource AdobeAccent}"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        HeightRequest="50" />
+                
+                <Button Text="Отмена" 
+                        Command="{Binding CancelCommand}"
+                        BackgroundColor="{StaticResource Gray400}"
+                        TextColor="White"
+                        FontSize="16"
+                        HeightRequest="50"
+                        Grid.Column="1" />
+            </Grid>
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

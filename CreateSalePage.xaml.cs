@@ -1,5 +1,6 @@
 using CarShowroom.ViewModels;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.ApplicationModel;
 
 namespace CarShowroom
 {
@@ -15,6 +16,9 @@ namespace CarShowroom
             InitializeComponent();
             ViewModel = viewModel;
             BindingContext = ViewModel;
+            
+            // Подписываемся на событие автоматического применения скидок
+            ViewModel.DiscountsAutoApplied += OnDiscountsAutoApplied;
         }
 
         protected override void OnAppearing()
@@ -26,6 +30,33 @@ namespace CarShowroom
                 carId = id;
             }
             ViewModel.Initialize(carId);
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            // При выходе со страницы вызываем метод отмены (если отмена не была вызвана явно)
+            if (!ViewModel.IsCancelling)
+            {
+                // Вызываем метод отмены (без навигации, так как навигация происходит автоматически)
+                ViewModel.CancelCommand.ExecuteAsync(null);
+            }
+            // Сбрасываем флаг после обработки
+            ViewModel.IsCancelling = false;
+        }
+
+        private void OnDiscountsAutoApplied()
+        {
+            // Программно устанавливаем выбранную скидку в CollectionView
+            // Используем BeginInvokeOnMainThread для гарантии, что UI готов
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (DiscountsCollectionView != null && ViewModel.SelectedDiscount != null)
+                {
+                    // Устанавливаем выбранную скидку
+                    DiscountsCollectionView.SelectedItem = ViewModel.SelectedDiscount;
+                }
+            });
         }
 
         private void OnAdditionsSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -40,7 +71,7 @@ namespace CarShowroom
         {
             if (sender is CollectionView collectionView)
             {
-                ViewModel.OnDiscountSelectionChanged(collectionView.SelectedItems);
+                ViewModel.OnDiscountSelectionChanged(sender, e);
             }
         }
 
