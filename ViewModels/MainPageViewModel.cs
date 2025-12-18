@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CarShowroom.Services;
+using CarShowroom.Interfaces;
 using DataLayer.Entities;
 
 namespace CarShowroom.ViewModels
 {
     public partial class MainPageViewModel : ObservableObject
     {
-        private readonly CarService _carService;
+        private readonly ICarService _carService;
 
         [ObservableProperty]
         private List<Car> _cars = new();
@@ -18,7 +18,7 @@ namespace CarShowroom.ViewModels
         [ObservableProperty]
         private Car? _selectedCar;
 
-        public MainPageViewModel(CarService carService)
+        public MainPageViewModel(ICarService carService)
         {
             _carService = carService;
         }

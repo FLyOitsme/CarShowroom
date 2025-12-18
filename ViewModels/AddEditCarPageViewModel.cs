@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CarShowroom.Services;
+using CarShowroom.Interfaces;
 using DataLayer.Entities;
 
 namespace CarShowroom.ViewModels
 {
     public partial class AddEditCarPageViewModel : ObservableObject
     {
-        private readonly CarService _carService;
+        private readonly ICarService _carService;
 
         [ObservableProperty]
         private List<Brand> _brands = new();
@@ -81,7 +81,7 @@ namespace CarShowroom.ViewModels
         private long? _carId;
         private bool _isEditMode => _carId.HasValue;
 
-        public AddEditCarPageViewModel(CarService carService)
+        public AddEditCarPageViewModel(ICarService carService)
         {
             _carService = carService;
         }

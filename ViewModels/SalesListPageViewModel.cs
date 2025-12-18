@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CarShowroom.Services;
+using CarShowroom.Interfaces;
 using DataLayer.Entities;
 using CommunityToolkit.Maui.Storage;
 
@@ -8,9 +8,9 @@ namespace CarShowroom.ViewModels
 {
     public partial class SalesListPageViewModel : ObservableObject
     {
-        private readonly SaleService _saleService;
-        private readonly PdfContractService _pdfContractService;
-        private readonly UserService _userService;
+        private readonly ISaleService _saleService;
+        private readonly IPdfContractService _pdfContractService;
+        private readonly IUserService _userService;
         private readonly IFileSaver? _fileSaver;
 
         [ObservableProperty]
@@ -19,7 +19,7 @@ namespace CarShowroom.ViewModels
         [ObservableProperty]
         private Sale? _selectedSale;
 
-        public SalesListPageViewModel(SaleService saleService, PdfContractService pdfContractService, UserService userService, IFileSaver? fileSaver = null)
+        public SalesListPageViewModel(ISaleService saleService, IPdfContractService pdfContractService, IUserService userService, IFileSaver? fileSaver = null)
         {
             _saleService = saleService;
             _pdfContractService = pdfContractService;

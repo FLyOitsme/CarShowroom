@@ -2,8 +2,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using DataLayer.Entities;
 using CarShowroom.Services;
+using CarShowroom.Interfaces;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Storage;
+using System.Reflection;
+using System.Text.Json;
 
 namespace CarShowroom
 {
@@ -25,16 +28,42 @@ namespace CarShowroom
     		builder.Logging.AddDebug();
 #endif
 
-            // Настройка подключения к базе данных
-            var connectionString = "Host=localhost;Database=CarShowroomBD;Username=postgres;Password=123";
+            // Загрузка конфигурации из appsettings.json
+            string connectionString = "Host=localhost;Database=CarShowroomBD;Username=postgres;Password=1357";
+            
+            try
+            {
+                var assembly = Assembly.GetExecutingAssembly();
+                using var stream = assembly.GetManifestResourceStream("CarShowroom.appsettings.json");
+                
+                if (stream != null)
+                {
+                    using var reader = new StreamReader(stream);
+                    var jsonContent = reader.ReadToEnd();
+                    var jsonDoc = JsonDocument.Parse(jsonContent);
+                    
+                    if (jsonDoc.RootElement.TryGetProperty("ConnectionStrings", out var connStrings))
+                    {
+                        if (connStrings.TryGetProperty("DefaultConnection", out var defaultConn))
+                        {
+                            connectionString = defaultConn.GetString() ?? connectionString;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Если файл не найден, используем значения по умолчанию
+            }
+            
             builder.Services.AddDbContext<CarShowroomDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
-            // Регистрация сервисов
-            builder.Services.AddScoped<CarService>();
-            builder.Services.AddScoped<SaleService>();
-            builder.Services.AddScoped<UserService>();
-            builder.Services.AddScoped<PdfContractService>();
+            // Регистрация сервисов через интерфейсы
+            builder.Services.AddScoped<ICarService, CarService>();
+            builder.Services.AddScoped<ISaleService, SaleService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IPdfContractService, PdfContractService>();
             
             // Регистрация FileSaver
             builder.Services.AddSingleton<IFileSaver>(FileSaver.Default);

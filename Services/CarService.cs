@@ -1,9 +1,10 @@
 using DataLayer.Entities;
 using Microsoft.EntityFrameworkCore;
+using CarShowroom.Interfaces;
 
 namespace CarShowroom.Services
 {
-    public class CarService
+    public class CarService : ICarService
     {
         private readonly CarShowroomDbContext _context;
 

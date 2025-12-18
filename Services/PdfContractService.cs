@@ -3,10 +3,11 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using DataLayer.Entities;
 using System.Globalization;
+using CarShowroom.Interfaces;
 
 namespace CarShowroom.Services
 {
-    public class PdfContractService
+    public class PdfContractService : IPdfContractService
     {
         public byte[] GenerateContract(
             Sale sale,
