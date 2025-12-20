@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CarShowroom.ReportsPage"
+             Title="Отчеты"
+             BackgroundColor="White">
+    
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="16">
+            
+            <!-- Кнопка обновления -->
+            <Button Text="Обновить отчеты"
+                    Command="{Binding LoadReportsCommand}"
+                    BackgroundColor="{StaticResource AdobeAccent}"
+                    TextColor="White"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    HeightRequest="50" />
+            
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                              IsVisible="{Binding IsLoading}"
+                              Color="{StaticResource AdobeAccent}" />
+            
+            <!-- Основная статистика -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="Основная статистика" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Всего продаж:" FontSize="14" TextColor="{StaticResource Black}" />
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding TotalSales}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource AdobeAccent}" />
+                        
+                        <Label Grid.Row="1" Grid.Column="0" Text="Доступно машин:" FontSize="14" TextColor="{StaticResource Black}" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding AvailableCars}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource AdobeAccent}" />
+                        
+                        <Label Grid.Row="2" Grid.Column="0" Text="Продано машин:" FontSize="14" TextColor="{StaticResource Black}" />
+                        <Label Grid.Row="2" Grid.Column="1" Text="{Binding SoldCars}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource AdobeAccent}" />
+                        
+                        <Label Grid.Row="3" Grid.Column="0" Text="Общая выручка:" FontSize="14" TextColor="{StaticResource Black}" />
+                        <Label Grid.Row="3" Grid.Column="1" Text="{Binding TotalRevenue, StringFormat='{0:N0} ₽'}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource AdobeAccent}" />
+                        
+                        <Label Grid.Row="4" Grid.Column="0" Text="Средняя цена продажи:" FontSize="14" TextColor="{StaticResource Black}" />
+                        <Label Grid.Row="4" Grid.Column="1" Text="{Binding AverageSalePrice, StringFormat='{0:N0} ₽'}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource AdobeAccent}" />
+                        
+                        <Label Grid.Row="5" Grid.Column="0" Text="Активных акций:" FontSize="14" TextColor="{StaticResource Black}" />
+                        <Label Grid.Row="5" Grid.Column="1" Text="{Binding ActiveDiscounts}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource AdobeAccent}" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+            
+            <!-- Статистика за период -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="Статистика за период" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <StackLayout Grid.Column="0">
+                            <Label Text="Дата начала:" FontSize="12" TextColor="{StaticResource Gray600}" />
+                            <DatePicker Date="{Binding PeriodStartDate}"
+                                       Format="dd.MM.yyyy"
+                                       TextColor="{StaticResource Black}" />
+                        </StackLayout>
+                        <StackLayout Grid.Column="1">
+                            <Label Text="Дата окончания:" FontSize="12" TextColor="{StaticResource Gray600}" />
+                            <DatePicker Date="{Binding PeriodEndDate}"
+                                       Format="dd.MM.yyyy"
+                                       TextColor="{StaticResource Black}" />
+                        </StackLayout>
+                    </Grid>
+                    
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="8" Margin="0,8,0,0">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Продаж за период:" FontSize="14" TextColor="{StaticResource Black}" />
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding PeriodSalesCount}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource AdobeAccent}" />
+                        
+                        <Label Grid.Row="1" Grid.Column="0" Text="Выручка за период:" FontSize="14" TextColor="{StaticResource Black}" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding PeriodRevenue, StringFormat='{0:N0} ₽'}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource AdobeAccent}" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+            
+            <!-- Статистика по брендам -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="Продажи по брендам" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <CollectionView ItemsSource="{Binding SalesByBrandItems}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Padding="12,8">
+                                    <Label Grid.Column="0" 
+                                           Text="{Binding BrandName}" 
+                                           FontSize="14" 
+                                           TextColor="{StaticResource Black}" />
+                                    <Label Grid.Column="1" 
+                                           Text="{Binding SalesCount, StringFormat='{0} продаж'}" 
+                                           FontSize="14" 
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource AdobeAccent}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+            
+            <!-- Статистика по менеджерам -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="Продажи по менеджерам" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <CollectionView ItemsSource="{Binding SalesByManagerItems}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*,Auto" Padding="12,8">
+                                    <Label Grid.Column="0" 
+                                           Text="{Binding ManagerName}" 
+                                           FontSize="14" 
+                                           TextColor="{StaticResource Black}" />
+                                    <Label Grid.Column="1" 
+                                           Text="{Binding SalesCount, StringFormat='{0} продаж'}" 
+                                           FontSize="14" 
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource AdobeAccent}" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+            
+            <!-- Месячная статистика -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="Месячная статистика" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <Label Grid.Column="0" 
+                               Text="Год:" 
+                               FontSize="14" 
+                               TextColor="{StaticResource Black}"
+                               VerticalOptions="Center" />
+                        <Picker Grid.Column="1"
+                                ItemsSource="{Binding YearOptions}"
+                                SelectedItem="{Binding SelectedYear}"
+                                TextColor="{StaticResource Black}" />
+                    </Grid>
+                    
+                    <CollectionView ItemsSource="{Binding MonthlyStatistics}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BackgroundColor="{StaticResource Gray100}"
+                                       BorderColor="{StaticResource Gray200}"
+                                       Padding="12"
+                                       Margin="0,4">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="12">
+                                        <Label Grid.Column="0" 
+                                               Text="{Binding MonthName}" 
+                                               FontSize="14" 
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource Black}" />
+                                        <Label Grid.Column="1" 
+                                               Text="{Binding SalesCount, StringFormat='{0} продаж'}" 
+                                               FontSize="14" 
+                                               TextColor="{StaticResource Black}" />
+                                        <Label Grid.Column="2" 
+                                               Text="{Binding Revenue, StringFormat='{0:N0} ₽'}" 
+                                               FontSize="14" 
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource AdobeAccent}" />
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+            
+        </StackLayout>
+    </ScrollView>
+</ContentPage>
+

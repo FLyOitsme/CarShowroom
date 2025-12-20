@@ -302,6 +302,16 @@ namespace CarShowroom.ViewModels
 
         private async Task<bool> IsDiscountApplicableAsync(Discount discount, Car car, int clientPurchaseCount)
         {
+            // Проверяем срок действия акции
+            if (discount.StartDate.HasValue || discount.EndDate.HasValue)
+            {
+                var today = DateOnly.FromDateTime(DateTime.Now);
+                if (discount.StartDate.HasValue && today < discount.StartDate.Value)
+                    return false; // Акция еще не началась
+                if (discount.EndDate.HasValue && today > discount.EndDate.Value)
+                    return false; // Акция уже закончилась
+            }
+
             // Если описание пустое, скидка применяется ко всем автомобилям
             if (string.IsNullOrWhiteSpace(discount.Description))
             {
@@ -384,38 +394,77 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Проверка типа
+                // Проверка типа (поддерживаем множественные значения через запятую)
                 else if (trimmedCondition.StartsWith("тип=") || trimmedCondition.StartsWith("тип ="))
                 {
-                    var typeName = ExtractValue(trimmedCondition, "тип");
-                    if (!string.IsNullOrEmpty(typeName))
+                    var typeNames = ExtractValue(trimmedCondition, "тип").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (typeNames.Length > 0)
                     {
-                        if (car.Type?.Name == null || 
-                            !car.Type.Name.Equals(typeName, StringComparison.OrdinalIgnoreCase))
+                        var carTypeName = car.Type?.Name;
+                        if (string.IsNullOrEmpty(carTypeName))
+                            return false;
+                        
+                        bool matches = false;
+                        foreach (var typeName in typeNames)
+                        {
+                            var trimmedTypeName = typeName.Trim();
+                            if (carTypeName.Equals(trimmedTypeName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                matches = true;
+                                break;
+                            }
+                        }
+                        if (!matches)
                             return false;
                     }
                 }
                 
-                // Проверка бренда
+                // Проверка бренда (поддерживаем множественные значения через запятую)
                 else if (trimmedCondition.StartsWith("бренд=") || trimmedCondition.StartsWith("бренд ="))
                 {
-                    var brandName = ExtractValue(trimmedCondition, "бренд");
-                    if (!string.IsNullOrEmpty(brandName))
+                    var brandNames = ExtractValue(trimmedCondition, "бренд").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (brandNames.Length > 0)
                     {
-                        if (car.Model?.Brand?.Name == null || 
-                            !car.Model.Brand.Name.Equals(brandName, StringComparison.OrdinalIgnoreCase))
+                        var carBrandName = car.Model?.Brand?.Name;
+                        if (string.IsNullOrEmpty(carBrandName))
+                            return false;
+                        
+                        bool matches = false;
+                        foreach (var brandName in brandNames)
+                        {
+                            var trimmedBrandName = brandName.Trim();
+                            if (carBrandName.Equals(trimmedBrandName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                matches = true;
+                                break;
+                            }
+                        }
+                        if (!matches)
                             return false;
                     }
                 }
                 
-                // Проверка состояния
+                // Проверка состояния (поддерживаем множественные значения через запятую)
                 else if (trimmedCondition.StartsWith("состояние=") || trimmedCondition.StartsWith("состояние ="))
                 {
-                    var conditionName = ExtractValue(trimmedCondition, "состояние");
-                    if (!string.IsNullOrEmpty(conditionName))
+                    var conditionNames = ExtractValue(trimmedCondition, "состояние").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (conditionNames.Length > 0)
                     {
-                        if (car.Condition?.Name == null || 
-                            !car.Condition.Name.Equals(conditionName, StringComparison.OrdinalIgnoreCase))
+                        var carConditionName = car.Condition?.Name;
+                        if (string.IsNullOrEmpty(carConditionName))
+                            return false;
+                        
+                        bool matches = false;
+                        foreach (var conditionName in conditionNames)
+                        {
+                            var trimmedConditionName = conditionName.Trim();
+                            if (carConditionName.Equals(trimmedConditionName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                matches = true;
+                                break;
+                            }
+                        }
+                        if (!matches)
                             return false;
                     }
                 }

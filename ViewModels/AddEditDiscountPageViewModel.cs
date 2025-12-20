@@ -36,19 +36,19 @@ namespace CarShowroom.ViewModels
         private List<Brand> _brands = new();
 
         [ObservableProperty]
-        private Brand? _selectedBrand;
+        private List<BrandSelectionItem> _brandSelectionItems = new();
 
         [ObservableProperty]
         private List<CarType> _carTypes = new();
 
         [ObservableProperty]
-        private CarType? _selectedCarType;
+        private List<CarTypeSelectionItem> _carTypeSelectionItems = new();
 
         [ObservableProperty]
         private List<ConditionType> _conditionTypes = new();
 
         [ObservableProperty]
-        private ConditionType? _selectedCondition;
+        private List<ConditionTypeSelectionItem> _conditionTypeSelectionItems = new();
 
         [ObservableProperty]
         private string _minMileage = string.Empty;
@@ -68,6 +68,16 @@ namespace CarShowroom.ViewModels
 
         [ObservableProperty]
         private string _maxPurchases = string.Empty;
+
+        // Срок действия акции
+        [ObservableProperty]
+        private DateTime _startDate = DateTime.Now;
+
+        [ObservableProperty]
+        private DateTime _endDate = DateTime.Now.AddMonths(1);
+
+        [ObservableProperty]
+        private bool _hasDateRange = false;
 
         [ObservableProperty]
         private string _title = "Добавить акцию";
@@ -102,6 +112,11 @@ namespace CarShowroom.ViewModels
                 CarTypes = await _carService.GetAllCarTypesAsync();
                 ConditionTypes = await _carService.GetAllConditionTypesAsync();
 
+                // Инициализируем списки для множественного выбора
+                BrandSelectionItems = Brands.Select(b => new BrandSelectionItem { Brand = b, IsSelected = false }).ToList();
+                CarTypeSelectionItems = CarTypes.Select(t => new CarTypeSelectionItem { CarType = t, IsSelected = false }).ToList();
+                ConditionTypeSelectionItems = ConditionTypes.Select(c => new ConditionTypeSelectionItem { ConditionType = c, IsSelected = false }).ToList();
+
                 if (_isEditMode && _discountId.HasValue)
                 {
                     await LoadDiscountDataAsync();
@@ -122,6 +137,18 @@ namespace CarShowroom.ViewModels
             {
                 Name = discount.Name ?? string.Empty;
                 Cost = discount.Cost?.ToString("F2") ?? string.Empty;
+                
+                // Загружаем даты
+                if (discount.StartDate.HasValue)
+                {
+                    StartDate = discount.StartDate.Value.ToDateTime(TimeOnly.MinValue);
+                    HasDateRange = true;
+                }
+                if (discount.EndDate.HasValue)
+                {
+                    EndDate = discount.EndDate.Value.ToDateTime(TimeOnly.MinValue);
+                    HasDateRange = true;
+                }
                 
                 // Парсим описание и заполняем поля
                 ParseDescription(discount.Description ?? string.Empty);
@@ -165,28 +192,43 @@ namespace CarShowroom.ViewModels
                         MaxYear = value.ToString("F0");
                 }
                 
-                // Тип
+                // Тип (поддерживаем множественные значения через запятую)
                 else if (trimmedLower.StartsWith("тип=") || trimmedLower.StartsWith("тип ="))
                 {
-                    var typeName = ExtractValue(trimmed);
-                    SelectedCarType = CarTypes.FirstOrDefault(t => t.Name != null && t.Name.Equals(typeName, StringComparison.OrdinalIgnoreCase));
-                }
-                
-                // Бренд
-                else if (trimmedLower.StartsWith("бренд=") || trimmedLower.StartsWith("бренд ="))
-                {
-                    var brandName = ExtractValue(trimmed);
-                    if (!string.IsNullOrWhiteSpace(brandName))
+                    var typeNames = ExtractValue(trimmed).Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var typeName in typeNames)
                     {
-                        SelectedBrand = Brands.FirstOrDefault(b => b.Name != null && b.Name.Equals(brandName, StringComparison.OrdinalIgnoreCase));
+                        var trimmedTypeName = typeName.Trim();
+                        var item = CarTypeSelectionItems.FirstOrDefault(t => t.CarType.Name != null && t.CarType.Name.Equals(trimmedTypeName, StringComparison.OrdinalIgnoreCase));
+                        if (item != null)
+                            item.IsSelected = true;
                     }
                 }
                 
-                // Состояние
+                // Бренд (поддерживаем множественные значения через запятую)
+                else if (trimmedLower.StartsWith("бренд=") || trimmedLower.StartsWith("бренд ="))
+                {
+                    var brandNames = ExtractValue(trimmed).Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var brandName in brandNames)
+                    {
+                        var trimmedBrandName = brandName.Trim();
+                        var item = BrandSelectionItems.FirstOrDefault(b => b.Brand.Name != null && b.Brand.Name.Equals(trimmedBrandName, StringComparison.OrdinalIgnoreCase));
+                        if (item != null)
+                            item.IsSelected = true;
+                    }
+                }
+                
+                // Состояние (поддерживаем множественные значения через запятую)
                 else if (trimmedLower.StartsWith("состояние=") || trimmedLower.StartsWith("состояние ="))
                 {
-                    var conditionName = ExtractValue(trimmed);
-                    SelectedCondition = ConditionTypes.FirstOrDefault(c => c.Name != null && c.Name.Equals(conditionName, StringComparison.OrdinalIgnoreCase));
+                    var conditionNames = ExtractValue(trimmed).Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var conditionName in conditionNames)
+                    {
+                        var trimmedConditionName = conditionName.Trim();
+                        var item = ConditionTypeSelectionItems.FirstOrDefault(c => c.ConditionType.Name != null && c.ConditionType.Name.Equals(trimmedConditionName, StringComparison.OrdinalIgnoreCase));
+                        if (item != null)
+                            item.IsSelected = true;
+                    }
                 }
                 
                 // Пробег
@@ -279,17 +321,20 @@ namespace CarShowroom.ViewModels
             if (!string.IsNullOrWhiteSpace(MaxYear) && float.TryParse(MaxYear, out float maxYear))
                 conditions.Add($"год<{maxYear:F0}");
             
-            // Тип
-            if (SelectedCarType != null && !string.IsNullOrWhiteSpace(SelectedCarType.Name))
-                conditions.Add($"тип={SelectedCarType.Name}");
+            // Тип (множественный выбор)
+            var selectedTypes = CarTypeSelectionItems.Where(t => t.IsSelected && !string.IsNullOrWhiteSpace(t.CarType.Name)).Select(t => t.CarType.Name).ToList();
+            if (selectedTypes.Any())
+                conditions.Add($"тип={string.Join(",", selectedTypes)}");
             
-            // Бренд
-            if (SelectedBrand != null && !string.IsNullOrWhiteSpace(SelectedBrand.Name))
-                conditions.Add($"бренд={SelectedBrand.Name}");
+            // Бренд (множественный выбор)
+            var selectedBrands = BrandSelectionItems.Where(b => b.IsSelected && !string.IsNullOrWhiteSpace(b.Brand.Name)).Select(b => b.Brand.Name).ToList();
+            if (selectedBrands.Any())
+                conditions.Add($"бренд={string.Join(",", selectedBrands)}");
             
-            // Состояние
-            if (SelectedCondition != null && !string.IsNullOrWhiteSpace(SelectedCondition.Name))
-                conditions.Add($"состояние={SelectedCondition.Name}");
+            // Состояние (множественный выбор)
+            var selectedConditions = ConditionTypeSelectionItems.Where(c => c.IsSelected && !string.IsNullOrWhiteSpace(c.ConditionType.Name)).Select(c => c.ConditionType.Name).ToList();
+            if (selectedConditions.Any())
+                conditions.Add($"состояние={string.Join(",", selectedConditions)}");
             
             // Пробег
             if (!string.IsNullOrWhiteSpace(MinMileage) && float.TryParse(MinMileage, out float minMileage))
@@ -334,6 +379,13 @@ namespace CarShowroom.ViewModels
                 return;
             }
 
+            // Валидация дат
+            if (HasDateRange && EndDate < StartDate)
+            {
+                await Shell.Current.DisplayAlert("Ошибка", "Дата окончания не может быть раньше даты начала", "OK");
+                return;
+            }
+
             // Формируем описание из заполненных полей
             var description = BuildDescription();
             
@@ -341,7 +393,9 @@ namespace CarShowroom.ViewModels
             {
                 Name = Name.Trim(),
                 Description = string.IsNullOrWhiteSpace(description) ? null : description,
-                Cost = cost
+                Cost = cost,
+                StartDate = HasDateRange ? DateOnly.FromDateTime(StartDate) : null,
+                EndDate = HasDateRange ? DateOnly.FromDateTime(EndDate) : null
             };
 
             try
@@ -370,6 +424,42 @@ namespace CarShowroom.ViewModels
         private async Task CancelAsync()
         {
             await Shell.Current.GoToAsync("..");
+        }
+    }
+
+    public class BrandSelectionItem : ObservableObject
+    {
+        public Brand Brand { get; set; } = null!;
+        
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set => SetProperty(ref _isSelected, value);
+        }
+    }
+
+    public class CarTypeSelectionItem : ObservableObject
+    {
+        public CarType CarType { get; set; } = null!;
+        
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set => SetProperty(ref _isSelected, value);
+        }
+    }
+
+    public class ConditionTypeSelectionItem : ObservableObject
+    {
+        public ConditionType ConditionType { get; set; } = null!;
+        
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set => SetProperty(ref _isSelected, value);
         }
     }
 

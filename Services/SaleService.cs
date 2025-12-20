@@ -280,7 +280,9 @@ namespace CarShowroom.Services
                 Id = nextId,
                 Name = discount.Name,
                 Description = discount.Description,
-                Cost = discount.Cost
+                Cost = discount.Cost,
+                StartDate = discount.StartDate,
+                EndDate = discount.EndDate
             };
 
             _context.Discounts.Add(newDiscount);
@@ -321,7 +323,9 @@ namespace CarShowroom.Services
                 Id = discount.Id,
                 Name = discount.Name,
                 Description = discount.Description,
-                Cost = discount.Cost
+                Cost = discount.Cost,
+                StartDate = discount.StartDate,
+                EndDate = discount.EndDate
             };
 
             _context.Discounts.Update(discountToUpdate);

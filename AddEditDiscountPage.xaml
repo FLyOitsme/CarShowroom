@@ -32,6 +32,38 @@
                            FontSize="12"
                            TextColor="{StaticResource Gray600}"
                            Margin="0,4,0,0" />
+                    
+                    <!-- Срок действия акции -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" Margin="0,8,0,0">
+                        <CheckBox Grid.Column="0"
+                                  IsChecked="{Binding HasDateRange}"
+                                  VerticalOptions="Center" />
+                        <Label Grid.Column="1"
+                               Text="Указать срок действия акции"
+                               FontSize="14"
+                               TextColor="{StaticResource Black}"
+                               VerticalOptions="Center" />
+                    </Grid>
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8" IsVisible="{Binding HasDateRange}">
+                        <StackLayout Grid.Column="0">
+                            <Label Text="Дата начала:"
+                                   FontSize="12"
+                                   TextColor="{StaticResource Gray600}" />
+                            <DatePicker Date="{Binding StartDate}"
+                                        Format="dd.MM.yyyy"
+                                        TextColor="{StaticResource Black}" />
+                        </StackLayout>
+                        <StackLayout Grid.Column="1">
+                            <Label Text="Дата окончания:"
+                                   FontSize="12"
+                                   TextColor="{StaticResource Gray600}" />
+                            <DatePicker Date="{Binding EndDate}"
+                                        Format="dd.MM.yyyy"
+                                        TextColor="{StaticResource Black}" />
+                        </StackLayout>
+                    </Grid>
+                    
                 </StackLayout>
             </Frame>
 
@@ -74,23 +106,77 @@
                                TextColor="{StaticResource Black}" />
                     </Grid>
                     
-                    <Picker Title="Бренд"
-                            TitleColor="{StaticResource Gray500}"
-                            ItemsSource="{Binding Brands}"
-                            SelectedItem="{Binding SelectedBrand}"
-                            ItemDisplayBinding="{Binding Name}" />
+                    <!-- Множественный выбор брендов -->
+                    <Label Text="Бренды (можно выбрать несколько):"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}"
+                           Margin="0,4,0,4" />
+                    <CollectionView ItemsSource="{Binding BrandSelectionItems}"
+                                    HeightRequest="120">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" Padding="8">
+                                    <CheckBox Grid.Column="0"
+                                              IsChecked="{Binding IsSelected}"
+                                              VerticalOptions="Center" />
+                                    <Label Grid.Column="1"
+                                           Text="{Binding Brand.Name}"
+                                           FontSize="14"
+                                           TextColor="{StaticResource Black}"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
                     
-                    <Picker Title="Тип автомобиля"
-                            TitleColor="{StaticResource Gray500}"
-                            ItemsSource="{Binding CarTypes}"
-                            SelectedItem="{Binding SelectedCarType}"
-                            ItemDisplayBinding="{Binding Name}" />
+                    <!-- Множественный выбор типов -->
+                    <Label Text="Типы автомобилей (можно выбрать несколько):"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}"
+                           Margin="0,8,0,4" />
+                    <CollectionView ItemsSource="{Binding CarTypeSelectionItems}"
+                                    HeightRequest="120">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" Padding="8">
+                                    <CheckBox Grid.Column="0"
+                                              IsChecked="{Binding IsSelected}"
+                                              VerticalOptions="Center" />
+                                    <Label Grid.Column="1"
+                                           Text="{Binding CarType.Name}"
+                                           FontSize="14"
+                                           TextColor="{StaticResource Black}"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
                     
-                    <Picker Title="Состояние"
-                            TitleColor="{StaticResource Gray500}"
-                            ItemsSource="{Binding ConditionTypes}"
-                            SelectedItem="{Binding SelectedCondition}"
-                            ItemDisplayBinding="{Binding Name}" />
+                    <!-- Множественный выбор состояний -->
+                    <Label Text="Состояния (можно выбрать несколько):"
+                           FontSize="14"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}"
+                           Margin="0,8,0,4" />
+                    <CollectionView ItemsSource="{Binding ConditionTypeSelectionItems}"
+                                    HeightRequest="120">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" Padding="8">
+                                    <CheckBox Grid.Column="0"
+                                              IsChecked="{Binding IsSelected}"
+                                              VerticalOptions="Center" />
+                                    <Label Grid.Column="1"
+                                           Text="{Binding ConditionType.Name}"
+                                           FontSize="14"
+                                           TextColor="{StaticResource Black}"
+                                           VerticalOptions="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
                     
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                         <Entry Grid.Column="0"

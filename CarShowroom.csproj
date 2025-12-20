@@ -13,7 +13,7 @@
 		
 		<!-- Отключите предупреждения как ошибки для пакетов -->
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-		<NoWarn>NU1605</NoWarn>
+		<NoWarn>NU1605;NETSDK1205</NoWarn>
 		
 		<!-- Для Windows -->
 		<UseWindowsForms Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">false</UseWindowsForms>
