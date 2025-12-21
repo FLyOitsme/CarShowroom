@@ -190,7 +190,7 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private async Task AddSaleAsync()
         {
-            await Shell.Current.GoToAsync("CreateSalePage");
+            await Shell.Current.GoToAsync("///SalesListPage/CreateSalePage");
         }
     }
 }

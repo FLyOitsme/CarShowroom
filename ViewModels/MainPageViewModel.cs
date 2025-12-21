@@ -61,7 +61,7 @@ namespace CarShowroom.ViewModels
         {
             if (car != null)
             {
-                await Shell.Current.GoToAsync($"CarDetailsPage?carId={car.Id}");
+                await Shell.Current.GoToAsync($"///MainPage/CarDetailsPage?carId={car.Id}");
                 SelectedCar = null;
             }
         }
@@ -69,7 +69,7 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private async Task AddCarAsync()
         {
-            await Shell.Current.GoToAsync("AddEditCarPage");
+            await Shell.Current.GoToAsync("///MainPage/AddEditCarPage");
         }
 
         partial void OnSearchTextChanged(string value)

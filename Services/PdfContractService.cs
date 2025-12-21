@@ -123,9 +123,18 @@ namespace CarShowroom.Services
                             if (discounts.Any())
                             {
                                 column.Item().PaddingTop(10).Text("Примененные скидки:").Bold();
+                                var additionsCost = additions.Sum(a => (decimal)(a.Cost ?? 0));
+                                var priceWithAdditions = basePrice + additionsCost;
+                                var totalDiscountAmount = priceWithAdditions - finalPrice;
+                                
                                 foreach (var discount in discounts)
                                 {
-                                    column.Item().PaddingLeft(20).Text($"- {discount.Name}: {discount.Cost}%");
+                                    var discountText = $"- {discount.Name}: {discount.Cost}%";
+                                    if (discounts.Count == 1 && totalDiscountAmount > 0)
+                                    {
+                                        discountText += $" ({totalDiscountAmount:N0} ₽)";
+                                    }
+                                    column.Item().PaddingLeft(20).Text(discountText);
                                 }
                             }
 
@@ -141,6 +150,18 @@ namespace CarShowroom.Services
                                     var additionsCost = additions.Sum(a => (decimal)(a.Cost ?? 0));
                                     text.Span("Стоимость дополнительных опций: ").Bold();
                                     text.Span($"{additionsCost:N0} ₽\n");
+                                }
+                                
+                                if (discounts.Any())
+                                {
+                                    var additionsCost = additions.Sum(a => (decimal)(a.Cost ?? 0));
+                                    var priceWithAdditions = basePrice + additionsCost;
+                                    var discountAmount = priceWithAdditions - finalPrice;
+                                    if (discountAmount > 0)
+                                    {
+                                        text.Span("Сумма скидки: ").Bold();
+                                        text.Span($"-{discountAmount:N0} ₽\n");
+                                    }
                                 }
                                 
                                 text.Span("Итоговая цена: ").Bold().FontSize(14);

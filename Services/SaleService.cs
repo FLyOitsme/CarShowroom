@@ -21,6 +21,7 @@ namespace CarShowroom.Services
                         .ThenInclude(m => m!.Brand)
                 .Include(s => s.Manager)
                 .Include(s => s.Client)
+                .OrderByDescending(s => s.Date ?? DateOnly.MinValue)
                 .ToListAsync();
         }
 
@@ -61,13 +62,8 @@ namespace CarShowroom.Services
 
         public async Task<Sale> CreateSaleAsync(Sale sale, List<int> additionIds, List<int> discountIds)
         {
-            // Проверяем, что все необходимые данные присутствуют
-            if (sale.CarId == 0)
-            {
-                throw new ArgumentException("CarId не может быть равен 0");
-            }
-
             // Проверяем существование автомобиля в базе и что он еще в наличии
+            // CarId может быть 0, если это валидный ID в базе данных
             var car = await _context.Cars.FirstOrDefaultAsync(c => c.Id == sale.CarId);
             if (car == null)
             {
@@ -439,17 +435,20 @@ namespace CarShowroom.Services
 
         public async Task<int> GetClientPurchaseCountAsync(long? clientId, string? clientName)
         {
+            // Используем ConfigureAwait(false) для избежания захвата контекста синхронизации
             // Если есть ID клиента, используем его для подсчета
             if (clientId.HasValue)
             {
                 var count = await _context.Sales
                     .AsNoTracking()
-                    .CountAsync(s => s.ClientId == clientId.Value);
+                    .CountAsync(s => s.ClientId == clientId.Value)
+                    .ConfigureAwait(false);
                 
                 return count;
             }
 
             // Если ID нет, но есть имя, пытаемся найти клиента по имени и подсчитать его покупки
+            // Используем один запрос для оптимизации и избежания параллельных операций
             if (!string.IsNullOrWhiteSpace(clientName))
             {
                 var nameParts = clientName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -458,22 +457,13 @@ namespace CarShowroom.Services
                     var surname = nameParts[0];
                     var name = nameParts[1];
                     
-                    // Сначала находим ID клиента
-                    var clientIdFromName = await _context.Clients
-                        .AsNoTracking()
-                        .Where(c => c.Surname == surname && c.Name == name)
-                        .Select(c => c.Id)
-                        .FirstOrDefaultAsync();
+                    // Выполняем один запрос с JOIN для поиска клиента и подсчета продаж
+                    var count = await (from client in _context.Clients
+                                      join sale in _context.Sales on client.Id equals sale.ClientId
+                                      where client.Surname == surname && client.Name == name
+                                      select sale).AsNoTracking().CountAsync().ConfigureAwait(false);
                     
-                    if (clientIdFromName != 0)
-                    {
-                        // Подсчитываем количество продаж для этого клиента
-                        var count = await _context.Sales
-                            .AsNoTracking()
-                            .CountAsync(s => s.ClientId == clientIdFromName);
-                        
-                        return count;
-                    }
+                    return count;
                 }
             }
 

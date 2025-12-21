@@ -6,9 +6,6 @@
              x:Class="CarShowroom.CreateSalePage"
              Title="Создать продажу">
     
-    <ContentPage.Resources>
-        <local:DiscountSelectedConverter x:Key="DiscountSelectedConverter" />
-    </ContentPage.Resources>
     
     <ScrollView>
         <StackLayout Padding="20" Spacing="16">
@@ -27,6 +24,137 @@
                             ItemDisplayBinding="{Binding DisplayText}"
                             TextColor="{StaticResource Black}"
                             TitleColor="{StaticResource Gray900}" />
+                    
+                    <!-- Информация об автомобиле -->
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
+                            BackgroundColor="{StaticResource Gray100}"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="12"
+                            IsVisible="{Binding IsCarInfoVisible}"
+                            Margin="0,8,0,0">
+                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8" ColumnSpacing="8">
+                            <Label Grid.Row="0" Grid.Column="0" 
+                                   Text="Марка: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="0" Grid.Column="1"
+                                   Text="{Binding CarBrand}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="1" Grid.Column="0" 
+                                   Text="Модель: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="1" Grid.Column="1"
+                                   Text="{Binding CarModel}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="2" Grid.Column="0" 
+                                   Text="Год: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="2" Grid.Column="1"
+                                   Text="{Binding CarYear}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="3" Grid.Column="0" 
+                                   Text="Цвет: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="3" Grid.Column="1"
+                                   Text="{Binding CarColor}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="4" Grid.Column="0" 
+                                   Text="Двигатель: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="4" Grid.Column="1"
+                                   Text="{Binding CarEngine}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="5" Grid.Column="0" 
+                                   Text="Объем: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="5" Grid.Column="1"
+                                   Text="{Binding CarEngineVolume}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="6" Grid.Column="0" 
+                                   Text="Мощность: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="6" Grid.Column="1"
+                                   Text="{Binding CarPower}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="7" Grid.Column="0" 
+                                   Text="Пробег: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="7" Grid.Column="1"
+                                   Text="{Binding CarMileage}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="8" Grid.Column="0" 
+                                   Text="Коробка: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="8" Grid.Column="1"
+                                   Text="{Binding CarTransmission}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="9" Grid.Column="0" 
+                                   Text="Тип: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="9" Grid.Column="1"
+                                   Text="{Binding CarType}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="10" Grid.Column="0" 
+                                   Text="Привод: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="10" Grid.Column="1"
+                                   Text="{Binding CarDrive}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+
+                            <Label Grid.Row="11" Grid.Column="0" 
+                                   Text="Состояние: " 
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Gray900}" />
+                            <Label Grid.Row="11" Grid.Column="1"
+                                   Text="{Binding CarCondition}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Black}" />
+                        </Grid>
+                    </Border>
                 </StackLayout>
             </Frame>
 
@@ -234,36 +362,24 @@
                             BackgroundColor="White"
                             StrokeShape="RoundRectangle 8"
                             Padding="8">
-                        <CollectionView x:Name="DiscountsCollectionView"
-                                        ItemsSource="{Binding ApplicableDiscounts}"
-                                        SelectionMode="Single"
-                                        SelectedItem="{Binding SelectedDiscount}"
-                                        SelectionChanged="OnDiscountsSelectionChanged"
+                        <CollectionView ItemsSource="{Binding DiscountSelectionItems}"
                                         HeightRequest="150">
                             <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="entities:Discount">
-                                    <Grid Margin="0,2"
-                                          Padding="12,8"
-                                          ColumnDefinitions="Auto,*,Auto"
-                                          ColumnSpacing="12"
-                                          BackgroundColor="White">
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="Auto,*,Auto" 
+                                          ColumnSpacing="8" 
+                                          Padding="8">
                                         <CheckBox Grid.Column="0"
-                                                  VerticalOptions="Center"
-                                                  IsEnabled="False">
-                                            <CheckBox.IsChecked>
-                                                <MultiBinding Converter="{StaticResource DiscountSelectedConverter}">
-                                                    <Binding Path="BindingContext.SelectedDiscount" Source="{RelativeSource AncestorType={x:Type ContentPage}}" />
-                                                    <Binding Path="." />
-                                                </MultiBinding>
-                                            </CheckBox.IsChecked>
-                                        </CheckBox>
-                                        <Label Grid.Column="1" 
-                                               Text="{Binding Name}" 
+                                                  IsChecked="{Binding IsSelected}"
+                                                  CheckedChanged="OnDiscountCheckboxChanged"
+                                                  VerticalOptions="Center" />
+                                        <Label Grid.Column="1"
+                                               Text="{Binding Discount.Name}" 
                                                FontSize="14"
                                                TextColor="{StaticResource Black}"
                                                VerticalOptions="Center" />
                                         <Label Grid.Column="2" 
-                                               Text="{Binding Cost, StringFormat='{0}%'}" 
+                                               Text="{Binding Discount.Cost, StringFormat='{0}%'}" 
                                                FontSize="14"
                                                FontAttributes="Bold"
                                                TextColor="{StaticResource AdobeAccent}"
@@ -273,7 +389,7 @@
                             </CollectionView.ItemTemplate>
                         </CollectionView>
                     </Border>
-                    <Label Text="Показаны только применимые скидки. Подходящая скидка применена автоматически. Нажмите на скидку, чтобы отменить её" 
+                    <Label Text="Показаны только применимые скидки. Подходящая скидка применена автоматически. Можно выбрать только одну скидку или не выбирать вообще" 
                            FontSize="12"
                            TextColor="{StaticResource Gray900}"
                            HorizontalOptions="Center"

@@ -93,13 +93,13 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private async Task EditCarAsync()
         {
-            await Shell.Current.GoToAsync($"AddEditCarPage?carId={_carId}");
+            await Shell.Current.GoToAsync($"///MainPage/AddEditCarPage?carId={_carId}");
         }
 
         [RelayCommand]
         private async Task CreateSaleAsync()
         {
-            await Shell.Current.GoToAsync($"CreateSalePage?carId={_carId}");
+            await Shell.Current.GoToAsync($"///SalesListPage/CreateSalePage?carId={_carId}");
         }
 
         [RelayCommand]

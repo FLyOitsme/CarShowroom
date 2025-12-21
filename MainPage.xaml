@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:entities="clr-namespace:DataLayer.Entities"
+             xmlns:Converters="clr-namespace:CarShowroom.Converters"
              x:Class="CarShowroom.MainPage"
              Title="Каталог"
              BackgroundColor="White">
@@ -31,7 +32,8 @@
             <SearchBar 
                 Placeholder="Поиск по марке, модели..."
                 Text="{Binding SearchText}"
-                BackgroundColor="Transparent" />
+                BackgroundColor="Transparent"
+                TextColor="{StaticResource Black}" />
         </Border>
 
         <!-- Список автомобилей -->
@@ -73,10 +75,12 @@
                                 StrokeShape="RoundRectangle 8"
                                 Padding="8">
                                 <Image 
-                                    Source="dotnet_bot.png"
+                                    Source="{Binding ImageUrl, Converter={StaticResource ImageUrlConverter}}"
                                     Aspect="AspectFill"
                                     HeightRequest="100"
-                                    WidthRequest="100" />
+                                    WidthRequest="100"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center" />
                             </Border>
 
                             <!-- Информация -->

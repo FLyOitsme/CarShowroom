@@ -78,6 +78,9 @@ namespace CarShowroom.ViewModels
         [ObservableProperty]
         private string _title = "Добавить автомобиль";
 
+        [ObservableProperty]
+        private string _imageUrl = string.Empty;
+
         private long? _carId;
         private bool _isEditMode => _carId.HasValue;
 
@@ -155,6 +158,7 @@ namespace CarShowroom.ViewModels
                 Power = car.Power?.ToString() ?? string.Empty;
                 Mileage = car.Mileage?.ToString() ?? string.Empty;
                 IsInStock = car.Stock ?? false;
+                ImageUrl = car.ImageUrl ?? string.Empty;
 
                 if (car.Model?.BrandId.HasValue == true)
                 {
@@ -213,21 +217,21 @@ namespace CarShowroom.ViewModels
                 return;
             }
 
-            if (!float.TryParse(Price, out float price) || price <= 0)
+            if (!float.TryParse(Price, out float price) || price <= 0 || price > 1000000000)
             {
-                await Shell.Current.DisplayAlert("Ошибка", "Введите корректную цену", "OK");
+                await Shell.Current.DisplayAlert("Ошибка", "Введите корректную цену (от 1 до 1 000 000 000 ₽)", "OK");
                 return;
             }
 
-            if (!float.TryParse(EngineVolume, out float engineVolume) || engineVolume <= 0)
+            if (!float.TryParse(EngineVolume, out float engineVolume) || engineVolume <= 0 || engineVolume > 20)
             {
-                await Shell.Current.DisplayAlert("Ошибка", "Введите корректный объем двигателя", "OK");
+                await Shell.Current.DisplayAlert("Ошибка", "Введите корректный объем двигателя (от 0.1 до 20 л)", "OK");
                 return;
             }
 
-            if (!float.TryParse(Mileage, out float mileage) || mileage < 0)
+            if (!float.TryParse(Mileage, out float mileage) || mileage < 0 || mileage > 10000000)
             {
-                await Shell.Current.DisplayAlert("Ошибка", "Введите корректный пробег", "OK");
+                await Shell.Current.DisplayAlert("Ошибка", "Введите корректный пробег (от 0 до 10 000 000 км)", "OK");
                 return;
             }
 
@@ -236,7 +240,17 @@ namespace CarShowroom.ViewModels
             {
                 if (float.TryParse(Power, out float powerValue))
                 {
+                    if (powerValue < 0 || powerValue > 10000)
+                    {
+                        await Shell.Current.DisplayAlert("Ошибка", "Введите корректную мощность (от 0 до 10 000 л.с.)", "OK");
+                        return;
+                    }
                     power = powerValue;
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Ошибка", "Введите корректную мощность", "OK");
+                    return;
                 }
             }
 
@@ -254,7 +268,8 @@ namespace CarShowroom.ViewModels
                 ConditionId = SelectedCondition.Id,
                 EngTypeId = SelectedEngineType.Id,
                 TransmissionId = SelectedTransmission.Id,
-                WdId = SelectedWdType.Id
+                WdId = SelectedWdType.Id,
+                ImageUrl = string.IsNullOrWhiteSpace(ImageUrl) ? null : ImageUrl.Trim()
             };
 
             try
@@ -284,6 +299,7 @@ namespace CarShowroom.ViewModels
         {
             await Shell.Current.GoToAsync("..");
         }
+
     }
 }
 

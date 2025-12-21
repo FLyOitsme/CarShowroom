@@ -33,6 +33,8 @@ public partial class Car
 
     public int? ModelId { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public virtual ConditionType? Condition { get; set; }
 
     public virtual EngineType? EngType { get; set; }

@@ -66,6 +66,7 @@ namespace CarShowroom
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IPdfContractService, PdfContractService>();
             builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddSingleton<IImageSearchService, ImageSearchService>();
             
             // Регистрация FileSaver
             builder.Services.AddSingleton<IFileSaver>(FileSaver.Default);
@@ -84,6 +85,7 @@ namespace CarShowroom
             });
             builder.Services.AddTransient<ViewModels.DiscountsListPageViewModel>();
             builder.Services.AddTransient<ViewModels.ReportsPageViewModel>();
+            builder.Services.AddTransient<ViewModels.ContractPreviewPageViewModel>();
             
             // Регистрация FileSaver для ViewModels
             builder.Services.AddSingleton<CommunityToolkit.Maui.Storage.IFileSaver>(
@@ -98,6 +100,7 @@ namespace CarShowroom
             builder.Services.AddTransient<AddEditDiscountPage>();
             builder.Services.AddTransient<DiscountsListPage>();
             builder.Services.AddTransient<ReportsPage>();
+            builder.Services.AddTransient<ContractPreviewPage>();
 
             var app = builder.Build();
             
@@ -126,17 +129,6 @@ namespace CarShowroom
                 // Создаем базу данных и все таблицы, если они не существуют
                 // EnsureCreated создает БД и все таблицы на основе моделей из OnModelCreating
                 var created = await dbContext.Database.EnsureCreatedAsync();
-                
-                if (created)
-                {
-                    System.Diagnostics.Debug.WriteLine("База данных успешно создана.");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("База данных уже существует.");
-                    // Обновляем структуру существующих таблиц, если нужно
-                    await UpdateDatabaseSchemaAsync(dbContext);
-                }
             }
             catch (Npgsql.PostgresException pgEx)
             {
@@ -160,66 +152,6 @@ namespace CarShowroom
                 {
                     System.Diagnostics.Debug.WriteLine($"Внутренняя ошибка: {ex.InnerException.Message}");
                 }
-#endif
-            }
-        }
-
-        private static async Task UpdateDatabaseSchemaAsync(CarShowroomDbContext dbContext)
-        {
-            try
-            {
-                // Проверяем и добавляем столбцы StartDate и EndDate в таблицу Discount, если их нет
-                var connection = dbContext.Database.GetDbConnection();
-                await connection.OpenAsync();
-                
-                try
-                {
-                    using var command = connection.CreateCommand();
-                    
-                    // Проверяем существование столбца StartDate
-                    command.CommandText = @"
-                        SELECT COUNT(*) 
-                        FROM information_schema.columns 
-                        WHERE table_name = 'Discount' 
-                        AND column_name = 'StartDate'";
-                    
-                    var startDateExists = Convert.ToInt32(await command.ExecuteScalarAsync()) > 0;
-                    
-                    // Добавляем StartDate, если его нет
-                    if (!startDateExists)
-                    {
-                        command.CommandText = @"ALTER TABLE ""Discount"" ADD COLUMN ""StartDate"" DATE";
-                        await command.ExecuteNonQueryAsync();
-                        System.Diagnostics.Debug.WriteLine("Столбец StartDate добавлен в таблицу Discount.");
-                    }
-                    
-                    // Проверяем существование столбца EndDate
-                    command.CommandText = @"
-                        SELECT COUNT(*) 
-                        FROM information_schema.columns 
-                        WHERE table_name = 'Discount' 
-                        AND column_name = 'EndDate'";
-                    
-                    var endDateExists = Convert.ToInt32(await command.ExecuteScalarAsync()) > 0;
-                    
-                    // Добавляем EndDate, если его нет
-                    if (!endDateExists)
-                    {
-                        command.CommandText = @"ALTER TABLE ""Discount"" ADD COLUMN ""EndDate"" DATE";
-                        await command.ExecuteNonQueryAsync();
-                        System.Diagnostics.Debug.WriteLine("Столбец EndDate добавлен в таблицу Discount.");
-                    }
-                }
-                finally
-                {
-                    await connection.CloseAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Ошибка при обновлении схемы базы данных: {ex.Message}");
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
 #endif
             }
         }
