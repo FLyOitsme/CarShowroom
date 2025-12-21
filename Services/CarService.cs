@@ -16,6 +16,7 @@ namespace CarShowroom.Services
         public async Task<List<Car>> GetAllCarsAsync()
         {
             return await _context.Cars
+                .Where(c => c.Stock == true) // Показываем только автомобили в наличии
                 .Include(c => c.Model)
                     .ThenInclude(m => m!.Brand)
                 .Include(c => c.Condition)
@@ -42,6 +43,7 @@ namespace CarShowroom.Services
         public async Task<List<Car>> SearchCarsAsync(string searchText)
         {
             var query = _context.Cars
+                .Where(c => c.Stock == true) // Показываем только автомобили в наличии
                 .Include(c => c.Model)
                     .ThenInclude(m => m!.Brand)
                 .Include(c => c.Condition)

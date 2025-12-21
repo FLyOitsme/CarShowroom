@@ -20,7 +20,7 @@ namespace CarShowroom.Interfaces
         Task<List<int>> GetSaleDiscountIdsAsync(int saleId);
         Task<decimal> CalculateFinalPriceAsync(decimal basePrice, List<int> discountIds);
         Task<decimal> CalculateOriginalPriceAsync(decimal finalPrice, List<int> discountIds);
-        Task<int> GetClientPurchaseCountAsync(int? clientId, string? clientName);
+        Task<int> GetClientPurchaseCountAsync(long? clientId, string? clientName);
     }
 }
 

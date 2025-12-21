@@ -11,7 +11,7 @@ namespace CarShowroom.Services
     {
         public byte[] GenerateContract(
             Sale sale,
-            User client,
+            Client client,
             User manager,
             Car car,
             List<Addition> additions,
@@ -69,8 +69,10 @@ namespace CarShowroom.Services
                             column.Item().PaddingLeft(20).Text(text =>
                             {
                                 text.Span($"{client.Surname} {client.Name} {client.Patronyc}\n");
-                                if (!string.IsNullOrEmpty(client.Login))
-                                    text.Span($"Телефон: {client.Login}\n");
+                                if (!string.IsNullOrEmpty(client.PhoneNumber))
+                                    text.Span($"Телефон: {client.PhoneNumber}\n");
+                                if (!string.IsNullOrEmpty(client.PassData))
+                                    text.Span($"Паспортные данные: {client.PassData}\n");
                             });
 
                             // Предмет договора

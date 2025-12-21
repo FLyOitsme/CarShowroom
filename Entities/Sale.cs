@@ -15,7 +15,11 @@ public partial class Sale
 
     public long CarId { get; set; }
 
+    public long? ClientId { get; set; }
+
     public virtual Car Car { get; set; } = null!;
+
+    public virtual Client? Client { get; set; }
 
     public virtual User? Manager { get; set; }
 }

@@ -119,16 +119,44 @@ namespace CarShowroom.Services
 
         public async Task<Dictionary<string, int>> GetSalesByManagerAsync()
         {
-            var sales = await _context.Sales
+            // Загружаем только ManagerId из продаж, чтобы избежать проблем с Include и LeftJoin
+            var salesWithManagers = await _context.Sales
                 .AsNoTracking()
-                .Include(s => s.Manager)
-                .Where(s => s.Manager != null)
-                .GroupBy(s => $"{s.Manager!.Surname} {s.Manager!.Name} {s.Manager!.Patronyc}".Trim())
-                .Select(g => new { Manager = g.Key, Count = g.Count() })
+                .Where(s => s.ManagerId != null)
+                .Select(s => new { ManagerId = s.ManagerId!.Value })
                 .ToListAsync()
                 .ConfigureAwait(false);
-            
-            return sales.ToDictionary(s => s.Manager, s => s.Count);
+
+            // Получаем уникальные ID менеджеров
+            var managerIds = salesWithManagers
+                .Select(s => s.ManagerId)
+                .Distinct()
+                .ToList();
+
+            // Загружаем менеджеров отдельным запросом
+            var managers = await _context.Users
+                .AsNoTracking()
+                .Where(u => managerIds.Contains(u.Id))
+                .Select(u => new {
+                    u.Id,
+                    Surname = u.Surname ?? string.Empty,
+                    Name = u.Name ?? string.Empty,
+                    Patronyc = u.Patronyc ?? string.Empty
+                })
+                .ToListAsync()
+                .ConfigureAwait(false);
+
+            // Создаем словарь для быстрого поиска менеджеров
+            var managerDict = managers.ToDictionary(m => m.Id, m =>
+                $"{m.Surname} {m.Name} {m.Patronyc}".Trim());
+
+            // Группируем продажи по менеджерам в памяти
+            var grouped = salesWithManagers
+                .GroupBy(s => managerDict.GetValueOrDefault(s.ManagerId, "Неизвестно"))
+                .Select(g => new { Manager = g.Key, Count = g.Count() })
+                .ToList();
+
+            return grouped.ToDictionary(s => s.Manager, s => s.Count);
         }
 
         public async Task<List<MonthlyStatistic>> GetMonthlyStatisticsAsync(int year)

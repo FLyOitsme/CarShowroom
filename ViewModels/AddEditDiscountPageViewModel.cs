@@ -161,7 +161,11 @@ namespace CarShowroom.ViewModels
                 return;
 
             // Парсим условия, сохраняя оригинальный регистр для значений
-            var conditions = description.Split(new[] { ',', ';', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            // Используем точку с запятой и перенос строки для разделения основных условий (новый формат)
+            // Если точка с запятой не найдена, используем запятую для обратной совместимости (старый формат)
+            var conditions = description.Contains(';') 
+                ? description.Split(new[] { ';', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                : description.Split(new[] { ',', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             
             foreach (var condition in conditions)
             {
@@ -195,39 +199,51 @@ namespace CarShowroom.ViewModels
                 // Тип (поддерживаем множественные значения через запятую)
                 else if (trimmedLower.StartsWith("тип=") || trimmedLower.StartsWith("тип ="))
                 {
-                    var typeNames = ExtractValue(trimmed).Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    var typeValue = ExtractValue(trimmed);
+                    var typeNames = typeValue.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (var typeName in typeNames)
                     {
                         var trimmedTypeName = typeName.Trim();
-                        var item = CarTypeSelectionItems.FirstOrDefault(t => t.CarType.Name != null && t.CarType.Name.Equals(trimmedTypeName, StringComparison.OrdinalIgnoreCase));
-                        if (item != null)
-                            item.IsSelected = true;
+                        if (!string.IsNullOrWhiteSpace(trimmedTypeName))
+                        {
+                            var item = CarTypeSelectionItems.FirstOrDefault(t => t.CarType.Name != null && t.CarType.Name.Equals(trimmedTypeName, StringComparison.OrdinalIgnoreCase));
+                            if (item != null)
+                                item.IsSelected = true;
+                        }
                     }
                 }
                 
                 // Бренд (поддерживаем множественные значения через запятую)
                 else if (trimmedLower.StartsWith("бренд=") || trimmedLower.StartsWith("бренд ="))
                 {
-                    var brandNames = ExtractValue(trimmed).Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    var brandValue = ExtractValue(trimmed);
+                    var brandNames = brandValue.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (var brandName in brandNames)
                     {
                         var trimmedBrandName = brandName.Trim();
-                        var item = BrandSelectionItems.FirstOrDefault(b => b.Brand.Name != null && b.Brand.Name.Equals(trimmedBrandName, StringComparison.OrdinalIgnoreCase));
-                        if (item != null)
-                            item.IsSelected = true;
+                        if (!string.IsNullOrWhiteSpace(trimmedBrandName))
+                        {
+                            var item = BrandSelectionItems.FirstOrDefault(b => b.Brand.Name != null && b.Brand.Name.Equals(trimmedBrandName, StringComparison.OrdinalIgnoreCase));
+                            if (item != null)
+                                item.IsSelected = true;
+                        }
                     }
                 }
                 
                 // Состояние (поддерживаем множественные значения через запятую)
                 else if (trimmedLower.StartsWith("состояние=") || trimmedLower.StartsWith("состояние ="))
                 {
-                    var conditionNames = ExtractValue(trimmed).Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+                    var conditionValue = ExtractValue(trimmed);
+                    var conditionNames = conditionValue.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (var conditionName in conditionNames)
                     {
                         var trimmedConditionName = conditionName.Trim();
-                        var item = ConditionTypeSelectionItems.FirstOrDefault(c => c.ConditionType.Name != null && c.ConditionType.Name.Equals(trimmedConditionName, StringComparison.OrdinalIgnoreCase));
-                        if (item != null)
-                            item.IsSelected = true;
+                        if (!string.IsNullOrWhiteSpace(trimmedConditionName))
+                        {
+                            var item = ConditionTypeSelectionItems.FirstOrDefault(c => c.ConditionType.Name != null && c.ConditionType.Name.Equals(trimmedConditionName, StringComparison.OrdinalIgnoreCase));
+                            if (item != null)
+                                item.IsSelected = true;
+                        }
                     }
                 }
                 
@@ -354,7 +370,8 @@ namespace CarShowroom.ViewModels
             if (!string.IsNullOrWhiteSpace(MaxPurchases) && float.TryParse(MaxPurchases, out float maxPurchases))
                 conditions.Add($"покупок<{maxPurchases:F0}");
             
-            return string.Join(", ", conditions);
+            // Используем точку с запятой для разделения основных условий, чтобы запятая могла использоваться для множественных значений внутри условий
+            return string.Join("; ", conditions);
         }
 
         [RelayCommand]

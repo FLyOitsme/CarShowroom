@@ -92,6 +92,9 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">
 		<Reference Remove="Microsoft.Web.WebView2.Core" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Entities\" />
+	</ItemGroup>
 	
 	<!-- Модифицируем сгенерированный файл после его создания, добавляя директиву для подавления ошибок CS0433 -->
 	<Target Name="FixWebView2Conflicts" AfterTargets="GenerateWinRTFallback" BeforeTargets="CoreCompile" Condition="'$(TargetFramework)' == 'net8.0-windows10.0.19041.0'">

@@ -12,6 +12,10 @@ namespace CarShowroom.Interfaces
         Task<List<User>> GetAllUsersAsync();
         Task<List<RoleType>> GetAllRoleTypesAsync();
         Task<List<User>> GetAllClientsAsync();
+        Task<Client> CreateOrGetClientEntityAsync(string fullName, string? phone = null, string? passData = null);
+        Task<Client?> SearchClientEntityByNameAsync(string name);
+        Task<List<Client>> SearchClientEntitiesAsync(string searchText);
+        Task<List<Client>> GetAllClientEntitiesAsync();
     }
 }
 

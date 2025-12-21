@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 using Microsoft.Maui.Controls;
 
 namespace CarShowroom
@@ -11,67 +12,78 @@ namespace CarShowroom
                 return "Без условий";
 
             var conditions = new List<string>();
-            var parts = description.ToLower().Split(new[] { ',', ';', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            // Используем точку с запятой для разделения основных условий (новый формат)
+            // Если точка с запятой не найдена, используем запятую для обратной совместимости (старый формат)
+            var parts = description.Contains(';')
+                ? description.Split(new[] { ';', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                : description.ToLower().Split(new[] { ',', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var part in parts)
             {
                 var trimmed = part.Trim();
+                var trimmedLower = trimmed.ToLower();
                 
                 // Цена
-                if (trimmed.StartsWith("цена>") || trimmed.StartsWith("цена >"))
+                if (trimmedLower.StartsWith("цена>") || trimmedLower.StartsWith("цена >"))
                 {
                     if (TryParseValue(trimmed, out float val))
                         conditions.Add($"Цена от {val:N0} ₽");
                 }
-                else if (trimmed.StartsWith("цена<") || trimmed.StartsWith("цена <"))
+                else if (trimmedLower.StartsWith("цена<") || trimmedLower.StartsWith("цена <"))
                 {
                     if (TryParseValue(trimmed, out float val))
                         conditions.Add($"Цена до {val:N0} ₽");
                 }
                 
                 // Год
-                else if (trimmed.StartsWith("год>") || trimmed.StartsWith("год >"))
+                else if (trimmedLower.StartsWith("год>") || trimmedLower.StartsWith("год >"))
                 {
                     if (TryParseValue(trimmed, out float val))
                         conditions.Add($"Год от {val:F0}");
                 }
-                else if (trimmed.StartsWith("год<") || trimmed.StartsWith("год <"))
+                else if (trimmedLower.StartsWith("год<") || trimmedLower.StartsWith("год <"))
                 {
                     if (TryParseValue(trimmed, out float val))
                         conditions.Add($"Год до {val:F0}");
                 }
                 
-                // Тип
-                else if (trimmed.StartsWith("тип=") || trimmed.StartsWith("тип ="))
+                // Тип (поддерживаем множественные значения через запятую)
+                else if (trimmedLower.StartsWith("тип=") || trimmedLower.StartsWith("тип ="))
                 {
-                    var typeName = ExtractValue(trimmed);
-                    if (!string.IsNullOrEmpty(typeName))
-                        conditions.Add($"Тип: {typeName}");
+                    var typeNames = ExtractValue(trimmed).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(t => t.Trim())
+                        .Where(t => !string.IsNullOrEmpty(t));
+                    if (typeNames.Any())
+                        conditions.Add($"Тип: {string.Join(", ", typeNames)}");
                 }
                 
-                // Бренд
-                else if (trimmed.StartsWith("бренд=") || trimmed.StartsWith("бренд ="))
+                // Бренд (поддерживаем множественные значения через запятую)
+                else if (trimmedLower.StartsWith("бренд=") || trimmedLower.StartsWith("бренд ="))
                 {
-                    var brandName = ExtractValue(trimmed);
-                    if (!string.IsNullOrEmpty(brandName))
-                        conditions.Add($"Бренд: {brandName}");
+                    var brandNames = ExtractValue(trimmed).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(b => b.Trim())
+                        .Where(b => !string.IsNullOrEmpty(b));
+                    if (brandNames.Any())
+                        conditions.Add($"Бренд: {string.Join(", ", brandNames)}");
                 }
                 
-                // Состояние
-                else if (trimmed.StartsWith("состояние=") || trimmed.StartsWith("состояние ="))
+                // Состояние (поддерживаем множественные значения через запятую)
+                else if (trimmedLower.StartsWith("состояние=") || trimmedLower.StartsWith("состояние ="))
                 {
-                    var conditionName = ExtractValue(trimmed);
-                    if (!string.IsNullOrEmpty(conditionName))
-                        conditions.Add($"Состояние: {conditionName}");
+                    var conditionNames = ExtractValue(trimmed).Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(c => c.Trim())
+                        .Where(c => !string.IsNullOrEmpty(c));
+                    if (conditionNames.Any())
+                        conditions.Add($"Состояние: {string.Join(", ", conditionNames)}");
                 }
                 
                 // Пробег
-                else if (trimmed.StartsWith("пробег>") || trimmed.StartsWith("пробег >"))
+                else if (trimmedLower.StartsWith("пробег>") || trimmedLower.StartsWith("пробег >"))
                 {
                     if (TryParseValue(trimmed, out float val))
                         conditions.Add($"Пробег от {val:N0} км");
                 }
-                else if (trimmed.StartsWith("пробег<") || trimmed.StartsWith("пробег <"))
+                else if (trimmedLower.StartsWith("пробег<") || trimmedLower.StartsWith("пробег <"))
                 {
                     if (TryParseValue(trimmed, out float val))
                         conditions.Add($"Пробег до {val:N0} км");
@@ -88,12 +100,12 @@ namespace CarShowroom
                 }
                 
                 // Покупки
-                else if (trimmed.StartsWith("покупок>=") || trimmed.StartsWith("покупок >="))
+                else if (trimmedLower.StartsWith("покупок>=") || trimmedLower.StartsWith("покупок >="))
                 {
                     if (TryParseValue(trimmed, out float val))
                         conditions.Add($"От {val:F0} покупок");
                 }
-                else if (trimmed.StartsWith("покупок<") || trimmed.StartsWith("покупок <"))
+                else if (trimmedLower.StartsWith("покупок<") || trimmedLower.StartsWith("покупок <"))
                 {
                     if (TryParseValue(trimmed, out float val))
                         conditions.Add($"До {val:F0} покупок");

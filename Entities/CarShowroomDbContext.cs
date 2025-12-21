@@ -19,6 +19,8 @@ public partial class CarShowroomDbContext : DbContext
 
     public virtual DbSet<CarType> CarTypes { get; set; }
 
+    public virtual DbSet<Client> Clients { get; set; }
+
     public virtual DbSet<ConditionType> ConditionTypes { get; set; }
 
     public virtual DbSet<Country> Countries { get; set; }
@@ -115,6 +117,17 @@ public partial class CarShowroomDbContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedNever();
         });
 
+        modelBuilder.Entity<Client>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("Client_pkey");
+
+            entity.ToTable("Client");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.PassData).HasColumnName("Pass_Data");
+            entity.Property(e => e.PhoneNumber).HasColumnName("Phone_Number");
+        });
+
         modelBuilder.Entity<ConditionType>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("ConditionType_pkey");
@@ -182,12 +195,17 @@ public partial class CarShowroomDbContext : DbContext
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.CarId).HasColumnName("Car_Id");
+            entity.Property(e => e.ClientId).HasColumnName("Client_Id");
             entity.Property(e => e.ManagerId).HasColumnName("Manager_Id");
 
             entity.HasOne(d => d.Car).WithMany(p => p.Sales)
                 .HasForeignKey(d => d.CarId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("Sale_Car_Id_fkey");
+
+            entity.HasOne(d => d.Client).WithMany(p => p.Sales)
+                .HasForeignKey(d => d.ClientId)
+                .HasConstraintName("Sale_Client_Id_fkey");
 
             entity.HasOne(d => d.Manager).WithMany(p => p.Sales)
                 .HasForeignKey(d => d.ManagerId)

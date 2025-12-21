@@ -86,7 +86,7 @@
                                         HeightRequest="150"
                                         MaximumHeightRequest="200">
                             <CollectionView.ItemTemplate>
-                                <DataTemplate x:DataType="entities:User">
+                                <DataTemplate x:DataType="entities:Client">
                                     <Border Margin="0,2"
                                             Padding="12,10"
                                             StrokeThickness="1"
@@ -107,7 +107,7 @@
                                                 </Label.Text>
                                             </Label>
                                             <Label Grid.Column="1"
-                                                   Text="{Binding Login}"
+                                                   Text="{Binding PhoneNumber}"
                                                    FontSize="12"
                                                    TextColor="{StaticResource Gray600}"
                                                    VerticalOptions="Center" />
@@ -133,9 +133,9 @@
                            Text="{Binding ClientPhone}"
                            TextColor="{StaticResource Black}" />
                     
-                    <Editor Placeholder="Адрес (необязательно)"
+                    <Editor Placeholder="Паспортные данные (необязательно)"
                             HeightRequest="80"
-                            Text="{Binding ClientAddress}"
+                            Text="{Binding ClientPassData}"
                             TextColor="{StaticResource Black}" />
                 </StackLayout>
             </Frame>

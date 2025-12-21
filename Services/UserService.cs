@@ -162,6 +162,123 @@ namespace CarShowroom.Services
                 .ThenBy(u => u.Name)
                 .ToListAsync();
         }
+
+        public async Task<Client> CreateOrGetClientEntityAsync(string fullName, string? phone = null, string? passData = null)
+        {
+            // Парсим ФИО
+            var nameParts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            string? firstName = null;
+            string? lastName = null;
+            string? patronymic = null;
+
+            if (nameParts.Length >= 1)
+                lastName = nameParts[0];
+            if (nameParts.Length >= 2)
+                firstName = nameParts[1];
+            if (nameParts.Length >= 3)
+                patronymic = nameParts[2];
+
+            // Ищем существующего клиента в таблице Client
+            Client? existingClient = null;
+            if (!string.IsNullOrWhiteSpace(lastName))
+            {
+                existingClient = await _context.Clients
+                    .Where(c => c.Surname == lastName &&
+                           (firstName == null || c.Name == firstName) &&
+                           (patronymic == null || c.Patronyc == patronymic))
+                    .FirstOrDefaultAsync();
+            }
+
+            if (existingClient != null)
+            {
+                // Обновляем данные клиента, если они изменились
+                if (existingClient.PhoneNumber != phone || existingClient.PassData != passData)
+                {
+                    existingClient.PhoneNumber = phone;
+                    existingClient.PassData = passData;
+                    await _context.SaveChangesAsync();
+                }
+                return existingClient;
+            }
+
+            // Получаем следующий доступный Id
+            long nextId = 1;
+            var clientsCount = await _context.Clients.AsNoTracking().CountAsync();
+
+            if (clientsCount > 0)
+            {
+                var maxId = await _context.Clients
+                    .AsNoTracking()
+                    .MaxAsync(c => (long?)c.Id);
+
+                if (maxId.HasValue)
+                {
+                    nextId = maxId.Value + 1;
+                }
+            }
+
+            // Создаем нового клиента в таблице Client
+            var newClient = new Client
+            {
+                Id = nextId,
+                Name = firstName,
+                Surname = lastName,
+                Patronyc = patronymic,
+                PhoneNumber = phone,
+                PassData = passData
+            };
+
+            _context.Clients.Add(newClient);
+            await _context.SaveChangesAsync();
+            return newClient;
+        }
+
+        public async Task<Client?> SearchClientEntityByNameAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+
+            var nameParts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (nameParts.Length == 0)
+                return null;
+
+            var query = _context.Clients.AsQueryable();
+
+            // Ищем по имени, фамилии или отчеству
+            if (nameParts.Length >= 1)
+            {
+                var firstName = nameParts[0];
+                query = query.Where(c =>
+                    (c.Name != null && c.Name.Contains(firstName)) ||
+                    (c.Surname != null && c.Surname.Contains(firstName)) ||
+                    (c.Patronyc != null && c.Patronyc.Contains(firstName)));
+            }
+
+            return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<List<Client>> SearchClientEntitiesAsync(string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+                return new List<Client>();
+
+            var lowerSearch = searchText.ToLower();
+            return await _context.Clients
+                .Where(c =>
+                    (c.Name != null && c.Name.ToLower().Contains(lowerSearch)) ||
+                    (c.Surname != null && c.Surname.ToLower().Contains(lowerSearch)) ||
+                    (c.Patronyc != null && c.Patronyc.ToLower().Contains(lowerSearch)) ||
+                    (c.PhoneNumber != null && c.PhoneNumber.ToLower().Contains(lowerSearch)))
+                .ToListAsync();
+        }
+
+        public async Task<List<Client>> GetAllClientEntitiesAsync()
+        {
+            return await _context.Clients
+                .OrderBy(c => c.Surname)
+                .ThenBy(c => c.Name)
+                .ToListAsync();
+        }
     }
 }
 

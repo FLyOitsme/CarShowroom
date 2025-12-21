@@ -32,10 +32,10 @@ namespace CarShowroom.ViewModels
         private List<Discount> _applicableDiscounts = new();
 
         [ObservableProperty]
-        private List<User> _foundClients = new();
+        private List<Client> _foundClients = new();
 
         [ObservableProperty]
-        private List<User> _allClients = new();
+        private List<Client> _allClients = new();
 
         [ObservableProperty]
         private CarDisplayItem? _selectedCar;
@@ -44,7 +44,7 @@ namespace CarShowroom.ViewModels
         private ManagerDisplayItem? _selectedManager;
 
         [ObservableProperty]
-        private User? _selectedClient;
+        private Client? _selectedClient;
 
         [ObservableProperty]
         private string _clientSearchText = string.Empty;
@@ -56,7 +56,7 @@ namespace CarShowroom.ViewModels
         private string _clientPhone = string.Empty;
 
         [ObservableProperty]
-        private string _clientAddress = string.Empty;
+        private string _clientPassData = string.Empty;
 
         [ObservableProperty]
         private DateTime _saleDate = DateTime.Now;
@@ -152,7 +152,7 @@ namespace CarShowroom.ViewModels
             ClientSearchText = string.Empty;
             ClientName = string.Empty;
             ClientPhone = string.Empty;
-            ClientAddress = string.Empty;
+            ClientPassData = string.Empty;
             SaleDate = DateTime.Now;
             Price = string.Empty;
             FinalPrice = "Итоговая цена: 0 ₽";
@@ -204,7 +204,7 @@ namespace CarShowroom.ViewModels
                 }).ToList();
 
                 // Загрузка всех клиентов
-                AllClients = await _userService.GetAllClientsAsync();
+                AllClients = await _userService.GetAllClientEntitiesAsync();
                 if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
 
                 // Загрузка дополнительных опций
@@ -334,9 +334,10 @@ namespace CarShowroom.ViewModels
             }
             
             // Парсим условия из описания
-            // Формат: "цена>1000000", "год<2020", "тип=Седан", "бренд=BMW", "состояние=Новый", "пробег<50000"
+            // Формат: "цена>1000000; год<2020; тип=Седан; бренд=BMW,Audi; состояние=Новый; пробег<50000"
+            // Используем точку с запятой и перенос строки для разделения основных условий, запятая используется для значений внутри условий
             
-            var conditions = description.Split(new[] { ',', ';', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var conditions = description.Split(new[] { ';', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             
             foreach (var condition in conditions)
             {
@@ -625,7 +626,7 @@ namespace CarShowroom.ViewModels
             await CheckAndApplyDiscountsAsync();
         }
 
-        partial void OnSelectedClientChanged(User? value)
+        partial void OnSelectedClientChanged(Client? value)
         {
             if (!_isPageActive) return;
             
@@ -633,7 +634,8 @@ namespace CarShowroom.ViewModels
             {
                 var fullName = $"{value.Surname} {value.Name} {value.Patronyc}".Trim();
                 ClientName = fullName;
-                ClientPhone = value.Login ?? string.Empty;
+                ClientPhone = value.PhoneNumber ?? string.Empty;
+                ClientPassData = value.PassData ?? string.Empty;
                 IsClientsVisible = false;
                 ShowAllClients = false;
                 ClientSearchText = string.Empty;
@@ -666,7 +668,7 @@ namespace CarShowroom.ViewModels
 
             try
             {
-                FoundClients = await _userService.SearchClientsAsync(searchText);
+                FoundClients = await _userService.SearchClientEntitiesAsync(searchText);
                 if (!_isPageActive) return;
                 
                 IsClientsVisible = FoundClients.Any();
@@ -693,7 +695,7 @@ namespace CarShowroom.ViewModels
         }
 
         [RelayCommand]
-        private void SelectClient(User? client)
+        private void SelectClient(Client? client)
         {
             // Логика выбора клиента обрабатывается в OnSelectedClientChanged
             SelectedClient = client;
@@ -712,7 +714,7 @@ namespace CarShowroom.ViewModels
 
             try
             {
-                var client = await _userService.SearchClientByNameAsync(ClientName);
+                var client = await _userService.SearchClientEntityByNameAsync(ClientName);
                 if (!_isPageActive) return;
                 
                 if (client != null)
@@ -720,7 +722,8 @@ namespace CarShowroom.ViewModels
                     SelectedClient = client;
                     var fullName = $"{client.Surname} {client.Name} {client.Patronyc}".Trim();
                     ClientName = fullName;
-                    ClientPhone = client.Login ?? string.Empty;
+                    ClientPhone = client.PhoneNumber ?? string.Empty;
+                    ClientPassData = client.PassData ?? string.Empty;
                     await Shell.Current.DisplayAlert("Успех", "Клиент найден", "OK");
                 }
                 else
@@ -830,19 +833,12 @@ namespace CarShowroom.ViewModels
 
             try
             {
-                // Создаем или получаем клиента
-                User client;
-                if (SelectedClient != null)
-                {
-                    client = SelectedClient;
-                }
-                else
-                {
-                    client = await _userService.CreateOrGetClientAsync(
-                        ClientName.Trim(),
-                        ClientPhone?.Trim(),
-                        ClientAddress?.Trim());
-                }
+                // Создаем или получаем Client entity для связи с продажей
+                // Всегда используем CreateOrGetClientEntityAsync, чтобы убедиться, что данные сохранены
+                var clientEntity = await _userService.CreateOrGetClientEntityAsync(
+                    ClientName.Trim(),
+                    ClientPhone?.Trim(),
+                    ClientPassData?.Trim());
 
                 // Рассчитываем итоговую цену с опциями и скидками
                 decimal additionsCost = 0;
@@ -878,6 +874,7 @@ namespace CarShowroom.ViewModels
                 {
                     CarId = SelectedCar.Car.Id,
                     ManagerId = SelectedManager.Manager.Id,
+                    ClientId = clientEntity.Id,
                     Date = DateOnly.FromDateTime(SaleDate),
                     Cost = (float)finalPrice
                 };
@@ -896,7 +893,7 @@ namespace CarShowroom.ViewModels
 
                 if (generatePdf)
                 {
-                    await GenerateContractAsync(createdSale, client, finalPrice, price);
+                    await GenerateContractAsync(createdSale, clientEntity, finalPrice, price);
                 }
 
                 // Переходим во вкладку "Продажи" после создания продажи
@@ -926,7 +923,7 @@ namespace CarShowroom.ViewModels
             }
         }
 
-        private async Task GenerateContractAsync(Sale sale, User client, decimal finalPrice, decimal basePrice)
+        private async Task GenerateContractAsync(Sale sale, Client client, decimal finalPrice, decimal basePrice)
         {
             try
             {

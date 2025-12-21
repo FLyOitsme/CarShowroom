@@ -20,6 +20,7 @@ namespace CarShowroom.Services
                     .ThenInclude(c => c!.Model)
                         .ThenInclude(m => m!.Brand)
                 .Include(s => s.Manager)
+                .Include(s => s.Client)
                 .ToListAsync();
         }
 
@@ -31,6 +32,7 @@ namespace CarShowroom.Services
                     .ThenInclude(c => c!.Model)
                         .ThenInclude(m => m!.Brand)
                 .Include(s => s.Manager)
+                .Include(s => s.Client)
                 .Include(s => s.Car)
                     .ThenInclude(c => c!.Condition)
                 .Include(s => s.Car)
@@ -65,11 +67,17 @@ namespace CarShowroom.Services
                 throw new ArgumentException("CarId не может быть равен 0");
             }
 
-            // Проверяем существование автомобиля в базе
-            var carExists = await _context.Cars.AnyAsync(c => c.Id == sale.CarId);
-            if (!carExists)
+            // Проверяем существование автомобиля в базе и что он еще в наличии
+            var car = await _context.Cars.FirstOrDefaultAsync(c => c.Id == sale.CarId);
+            if (car == null)
             {
                 throw new ArgumentException($"Автомобиль с ID {sale.CarId} не найден в базе данных");
+            }
+            
+            // Проверяем, что автомобиль еще в наличии
+            if (car.Stock == false)
+            {
+                throw new ArgumentException("Этот автомобиль уже продан и не может быть продан повторно");
             }
 
             // Проверяем существование менеджера в базе (если указан)
@@ -81,10 +89,21 @@ namespace CarShowroom.Services
                     throw new ArgumentException($"Менеджер с ID {sale.ManagerId.Value} не найден в базе данных");
                 }
             }
+
+            // Проверяем существование клиента в базе (если указан)
+            if (sale.ClientId.HasValue)
+            {
+                var clientExists = await _context.Clients.AnyAsync(c => c.Id == sale.ClientId.Value);
+                if (!clientExists)
+                {
+                    throw new ArgumentException($"Клиент с ID {sale.ClientId.Value} не найден в базе данных");
+                }
+            }
             
             // Сохраняем значения полей перед созданием новой сущности
             var carId = sale.CarId;
             var managerId = sale.ManagerId;
+            var clientId = sale.ClientId;
             var date = sale.Date;
             var cost = sale.Cost;
             
@@ -138,12 +157,17 @@ namespace CarShowroom.Services
                 Id = nextId, // Устанавливаем следующий доступный Id
                 CarId = carId,
                 ManagerId = managerId,
+                ClientId = clientId,
                 Date = date,
                 Cost = cost
             };
             
             try
             {
+                // Обновляем поле stock автомобиля на false (продано)
+                // Сущность car уже отслеживается контекстом, поэтому просто устанавливаем свойство
+                car.Stock = false;
+                
                 _context.Sales.Add(newSale);
                 await _context.SaveChangesAsync();
             }
@@ -162,8 +186,6 @@ namespace CarShowroom.Services
                 // Логируем детали ошибки для отладки
                 throw new Exception($"Ошибка при сохранении продажи: {ex.Message}", ex);
             }
-            
-            return newSale;
 
             // Добавляем дополнительные опции
             if (additionIds.Any())
@@ -415,23 +437,19 @@ namespace CarShowroom.Services
             return finalPrice / (1 - totalDiscountPercent / 100);
         }
 
-        public async Task<int> GetClientPurchaseCountAsync(int? clientId, string? clientName)
+        public async Task<int> GetClientPurchaseCountAsync(long? clientId, string? clientName)
         {
-            // Если есть ID клиента, используем его для поиска
+            // Если есть ID клиента, используем его для подсчета
             if (clientId.HasValue)
             {
-                var client = await _context.Users
+                var count = await _context.Sales
                     .AsNoTracking()
-                    .Include(u => u.Sales)
-                    .FirstOrDefaultAsync(u => u.Id == clientId.Value);
+                    .CountAsync(s => s.ClientId == clientId.Value);
                 
-                if (client != null && client.Sales != null)
-                {
-                    return client.Sales.Count;
-                }
+                return count;
             }
 
-            // Если ID нет, но есть имя, пытаемся найти клиента по имени
+            // Если ID нет, но есть имя, пытаемся найти клиента по имени и подсчитать его покупки
             if (!string.IsNullOrWhiteSpace(clientName))
             {
                 var nameParts = clientName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -440,15 +458,21 @@ namespace CarShowroom.Services
                     var surname = nameParts[0];
                     var name = nameParts[1];
                     
-                    var client = await _context.Users
+                    // Сначала находим ID клиента
+                    var clientIdFromName = await _context.Clients
                         .AsNoTracking()
-                        .Include(u => u.Sales)
-                        .Where(u => u.Surname == surname && u.Name == name)
+                        .Where(c => c.Surname == surname && c.Name == name)
+                        .Select(c => c.Id)
                         .FirstOrDefaultAsync();
                     
-                    if (client != null && client.Sales != null)
+                    if (clientIdFromName != 0)
                     {
-                        return client.Sales.Count;
+                        // Подсчитываем количество продаж для этого клиента
+                        var count = await _context.Sales
+                            .AsNoTracking()
+                            .CountAsync(s => s.ClientId == clientIdFromName);
+                        
+                        return count;
                     }
                 }
             }

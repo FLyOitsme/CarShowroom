@@ -6,7 +6,7 @@ namespace CarShowroom.Interfaces
     {
         byte[] GenerateContract(
             Sale sale,
-            User client,
+            Client client,
             User manager,
             Car car,
             List<Addition> additions,

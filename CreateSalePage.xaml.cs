@@ -35,14 +35,24 @@ namespace CarShowroom
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
-            // При выходе со страницы вызываем метод отмены (если отмена не была вызвана явно)
-            if (!ViewModel.IsCancelling)
+            try
             {
-                // Вызываем метод отмены (без навигации, так как навигация происходит автоматически)
-                ViewModel.CancelCommand.ExecuteAsync(null);
+                // При выходе со страницы вызываем метод отмены (если отмена не была вызвана явно)
+                if (!ViewModel.IsCancelling)
+                {
+                    // Вызываем метод очистки данных напрямую, без навигации
+                    ViewModel.ClearData();
+                }
             }
-            // Сбрасываем флаг после обработки
-            ViewModel.IsCancelling = false;
+            catch
+            {
+                // Игнорируем ошибки при закрытии страницы
+            }
+            finally
+            {
+                // Сбрасываем флаг после обработки
+                ViewModel.IsCancelling = false;
+            }
         }
 
         private void OnDiscountsAutoApplied()

@@ -60,6 +60,7 @@ namespace CarShowroom.ViewModels
                 {
                     await Shell.Current.DisplayAlert("Продажа",
                         $"Автомобиль: {sale.Car?.Model?.Brand?.Name} {sale.Car?.Model?.Name}\n" +
+                        $"Клиент: {sale.Client?.Surname} {sale.Client?.Name} {sale.Client?.Patronyc}\n" +
                         $"Менеджер: {sale.Manager?.Name} {sale.Manager?.Surname}\n" +
                         $"Дата: {sale.Date}\n" +
                         $"Цена: {sale.Cost:N0} ₽",
@@ -82,36 +83,11 @@ namespace CarShowroom.ViewModels
             {
                 // Получаем полную информацию о продаже
                 var fullSale = await _saleService.GetSaleByIdAsync(sale.Id);
-                if (fullSale == null || fullSale.Car == null || fullSale.Manager == null)
+                if (fullSale == null || fullSale.Car == null || fullSale.Manager == null || fullSale.Client == null)
                 {
-                    await Shell.Current.DisplayAlert("Ошибка", "Не удалось загрузить данные о продаже", "OK");
+                    await Shell.Current.DisplayAlert("Ошибка", "Не удалось загрузить данные о продаже. Клиент не найден.", "OK");
                     return;
                 }
-
-                // Запрашиваем данные клиента
-                var clientName = await Shell.Current.DisplayPromptAsync(
-                    "Данные клиента",
-                    "Введите ФИО клиента:",
-                    "OK",
-                    "Отмена",
-                    "ФИО клиента",
-                    -1,
-                    Keyboard.Default);
-
-                if (string.IsNullOrWhiteSpace(clientName))
-                {
-                    await Shell.Current.DisplayAlert("Информация", "Генерация договора отменена", "OK");
-                    return;
-                }
-
-                // Парсим ФИО и создаем объект клиента
-                var nameParts = clientName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var client = new User
-                {
-                    Surname = nameParts.Length > 0 ? nameParts[0] : null,
-                    Name = nameParts.Length > 1 ? nameParts[1] : null,
-                    Patronyc = nameParts.Length > 2 ? nameParts[2] : null
-                };
 
                 // Получаем опции и скидки
                 var additions = await _saleService.GetSaleAdditionsAsync(sale.Id);
@@ -144,7 +120,7 @@ namespace CarShowroom.ViewModels
                 // Генерируем PDF
                 var pdfBytes = _pdfContractService.GenerateContract(
                     fullSale,
-                    client,
+                    fullSale.Client,
                     fullSale.Manager,
                     fullSale.Car,
                     additions,
