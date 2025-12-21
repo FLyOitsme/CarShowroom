@@ -52,17 +52,39 @@
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidResource Remove="BLL\**" />
+		<AndroidResource Remove="DAL\**" />
+		<AndroidResource Remove="Dom\**" />
+		<AndroidResource Remove="Entities\**" />
+		<AndroidResource Remove="Interfaces\**" />
+		<Compile Remove="BLL\**" />
+		<Compile Remove="DAL\**" />
+		<Compile Remove="Dom\**" />
+		<Compile Remove="Entities\**" />
+		<Compile Remove="Interfaces\**" />
+		<EmbeddedResource Remove="BLL\**" />
+		<EmbeddedResource Remove="DAL\**" />
+		<EmbeddedResource Remove="Dom\**" />
+		<EmbeddedResource Remove="Entities\**" />
+		<EmbeddedResource Remove="Interfaces\**" />
+		<MauiCss Remove="BLL\**" />
+		<MauiCss Remove="DAL\**" />
+		<MauiCss Remove="Dom\**" />
+		<MauiCss Remove="Entities\**" />
+		<MauiCss Remove="Interfaces\**" />
+		<MauiXaml Remove="BLL\**" />
+		<MauiXaml Remove="DAL\**" />
+		<MauiXaml Remove="Dom\**" />
+		<MauiXaml Remove="Entities\**" />
+		<MauiXaml Remove="Interfaces\**" />
+		<None Remove="BLL\**" />
+		<None Remove="DAL\**" />
+		<None Remove="Dom\**" />
+		<None Remove="Entities\**" />
+		<None Remove="Interfaces\**" />
 		
 		<!-- App Settings -->
 		<EmbeddedResource Include="appsettings.json" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<!-- Project References -->
-		<ProjectReference Include="..\Dom\Dom.csproj" />
-		<ProjectReference Include="..\Interfaces\Interfaces.csproj" />
-		<ProjectReference Include="..\DAL\DAL.csproj" />
-		<ProjectReference Include="..\BLL\BLL.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -100,7 +122,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Entities\" />
+	  <ProjectReference Include="BLL\BLL.csproj" />
+	  <ProjectReference Include="DAL\DAL.csproj" />
+	  <ProjectReference Include="Dom\Dom.csproj" />
+	  <ProjectReference Include="Interfaces\Interfaces.csproj" />
 	</ItemGroup>
 	
 
