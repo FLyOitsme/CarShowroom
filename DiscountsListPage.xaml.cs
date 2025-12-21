@@ -22,7 +22,7 @@ namespace CarShowroom
 
         private async void OnDiscountSelected(object sender, SelectionChangedEventArgs e)
         {
-            if (e.CurrentSelection.FirstOrDefault() is DataLayer.Entities.Discount selectedDiscount)
+            if (e.CurrentSelection.FirstOrDefault() is Dom.Discount selectedDiscount)
             {
                 await ViewModel.DiscountSelectedCommand.ExecuteAsync(selectedDiscount);
             }

@@ -1,14 +1,16 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using DataLayer.Entities;
+using Dom;
 using CarShowroom.Services;
 using CarShowroom.Interfaces;
+using CarShowroom.Repositories;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Storage;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
+using MSDI = Microsoft.Extensions.DependencyInjection;
 
 namespace CarShowroom
 {
@@ -16,7 +18,6 @@ namespace CarShowroom
     {
         public static MauiApp CreateMauiApp()
         {
-            // Устанавливаем русскую культуру для приложения
             var culture = new CultureInfo("ru-RU");
             CultureInfo.DefaultThreadCurrentCulture = culture;
             CultureInfo.DefaultThreadCurrentUICulture = culture;
@@ -35,7 +36,6 @@ namespace CarShowroom
     		builder.Logging.AddDebug();
 #endif
 
-            // Загрузка конфигурации из appsettings.json
             string connectionString = "Host=localhost;Database=bfd;Username=postgres;Password=1357";
             
             try
@@ -60,57 +60,65 @@ namespace CarShowroom
             }
             catch
             {
-                // Если файл не найден, используем значения по умолчанию
             }
             
             builder.Services.AddDbContext<CarShowroomDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
-            // Регистрация сервисов через интерфейсы
-            builder.Services.AddScoped<ICarService, CarService>();
-            builder.Services.AddScoped<ISaleService, SaleService>();
-            builder.Services.AddScoped<IUserService, UserService>();
-            builder.Services.AddScoped<IPdfContractService, PdfContractService>();
-            builder.Services.AddScoped<IReportService, ReportService>();
-            builder.Services.AddSingleton<IImageSearchService, ImageSearchService>();
-            
-            // Регистрация FileSaver
-            builder.Services.AddSingleton<IFileSaver>(FileSaver.Default);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IRepository<CarType>, Repository<CarType>>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IRepository<ConditionType>, Repository<ConditionType>>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IRepository<EngineType>, Repository<EngineType>>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IRepository<Transmission>, Repository<Transmission>>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IRepository<Wdtype>, Repository<Wdtype>>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IRepository<RoleType>, Repository<RoleType>>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<ICarRepository, CarRepository>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IBrandRepository, BrandRepository>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IModelRepository, ModelRepository>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<ISaleRepository, SaleRepository>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IUserRepository, UserRepository>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IClientRepository, ClientRepository>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IAdditionRepository, AdditionRepository>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IDiscountRepository, DiscountRepository>(builder.Services);
 
-            // Регистрация ViewModels
-            builder.Services.AddTransient<ViewModels.MainPageViewModel>();
-            builder.Services.AddTransient<ViewModels.CarDetailsPageViewModel>();
-            builder.Services.AddTransient<ViewModels.AddEditCarPageViewModel>();
-            builder.Services.AddTransient<ViewModels.CreateSalePageViewModel>();
-            builder.Services.AddTransient<ViewModels.SalesListPageViewModel>();
-            builder.Services.AddTransient<ViewModels.AddEditDiscountPageViewModel>(sp =>
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<ICarService, CarService>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<ISaleService, SaleService>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IUserService, UserService>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IPdfContractService, PdfContractService>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddScoped<IReportService, ReportService>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddSingleton<IImageSearchService, ImageSearchService>(builder.Services);
+            
+            MSDI.ServiceCollectionServiceExtensions.AddSingleton<IFileSaver>(builder.Services, FileSaver.Default);
+
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ViewModels.MainPageViewModel>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ViewModels.CarDetailsPageViewModel>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ViewModels.AddEditCarPageViewModel>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ViewModels.CreateSalePageViewModel>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ViewModels.SalesListPageViewModel>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ViewModels.AddEditDiscountPageViewModel>(builder.Services, sp =>
             {
                 var saleService = sp.GetRequiredService<ISaleService>();
                 var carService = sp.GetRequiredService<ICarService>();
                 return new ViewModels.AddEditDiscountPageViewModel(saleService, carService);
             });
-            builder.Services.AddTransient<ViewModels.DiscountsListPageViewModel>();
-            builder.Services.AddTransient<ViewModels.ReportsPageViewModel>();
-            builder.Services.AddTransient<ViewModels.ContractPreviewPageViewModel>();
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ViewModels.DiscountsListPageViewModel>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ViewModels.ReportsPageViewModel>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ViewModels.ContractPreviewPageViewModel>(builder.Services);
             
-            // Регистрация FileSaver для ViewModels
-            builder.Services.AddSingleton<CommunityToolkit.Maui.Storage.IFileSaver>(
-                CommunityToolkit.Maui.Storage.FileSaver.Default);
+            MSDI.ServiceCollectionServiceExtensions.AddSingleton<CommunityToolkit.Maui.Storage.IFileSaver>(
+                builder.Services, CommunityToolkit.Maui.Storage.FileSaver.Default);
 
-            // Регистрация страниц
-            builder.Services.AddTransient<MainPage>();
-            builder.Services.AddTransient<CarDetailsPage>();
-            builder.Services.AddTransient<AddEditCarPage>();
-            builder.Services.AddTransient<CreateSalePage>();
-            builder.Services.AddTransient<SalesListPage>();
-            builder.Services.AddTransient<AddEditDiscountPage>();
-            builder.Services.AddTransient<DiscountsListPage>();
-            builder.Services.AddTransient<ReportsPage>();
-            builder.Services.AddTransient<ContractPreviewPage>();
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<MainPage>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<CarDetailsPage>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<AddEditCarPage>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<CreateSalePage>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<SalesListPage>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<AddEditDiscountPage>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<DiscountsListPage>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ReportsPage>(builder.Services);
+            MSDI.ServiceCollectionServiceExtensions.AddTransient<ContractPreviewPage>(builder.Services);
 
             var app = builder.Build();
             
-            // Создаем базу данных при старте приложения, если она не существует
             InitializeDatabase(app.Services);
             
             return app;
@@ -123,8 +131,6 @@ namespace CarShowroom
                 using var scope = serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<CarShowroomDbContext>();
                 
-                // EnsureCreatedAsync создаст базу данных и все таблицы, если они не существуют
-                // Это единственная функция EF Core, необходимая для создания БД и схемы
                 var created = await dbContext.Database.EnsureCreatedAsync();
                 
                 if (created)
@@ -138,7 +144,6 @@ namespace CarShowroom
             }
             catch (Exception ex)
             {
-                // Логируем ошибку, но не прерываем запуск приложения
                 System.Diagnostics.Debug.WriteLine($"Ошибка при создании базы данных: {ex.Message}");
 #if DEBUG
                 System.Diagnostics.Debug.WriteLine($"Тип ошибки: {ex.GetType().Name}");

@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CarShowroom.Interfaces;
-using DataLayer.Entities;
+using Dom;
 
 namespace CarShowroom.ViewModels
 {
@@ -19,7 +19,6 @@ namespace CarShowroom.ViewModels
         [ObservableProperty]
         private string _cost = string.Empty;
 
-        // Условия по автомобилю
         [ObservableProperty]
         private string _minPrice = string.Empty;
 
@@ -56,7 +55,6 @@ namespace CarShowroom.ViewModels
         [ObservableProperty]
         private string _maxMileage = string.Empty;
 
-        // Условия по клиенту
         [ObservableProperty]
         private bool _isFirstClient = false;
 
@@ -69,7 +67,6 @@ namespace CarShowroom.ViewModels
         [ObservableProperty]
         private string _maxPurchases = string.Empty;
 
-        // Срок действия акции
         [ObservableProperty]
         private DateTime _startDate = DateTime.Now;
 
@@ -107,12 +104,10 @@ namespace CarShowroom.ViewModels
         {
             try
             {
-                // Загружаем справочники
                 Brands = await _carService.GetAllBrandsAsync();
                 CarTypes = await _carService.GetAllCarTypesAsync();
                 ConditionTypes = await _carService.GetAllConditionTypesAsync();
 
-                // Инициализируем списки для множественного выбора
                 BrandSelectionItems = Brands.Select(b => new BrandSelectionItem { Brand = b, IsSelected = false }).ToList();
                 CarTypeSelectionItems = CarTypes.Select(t => new CarTypeSelectionItem { CarType = t, IsSelected = false }).ToList();
                 ConditionTypeSelectionItems = ConditionTypes.Select(c => new ConditionTypeSelectionItem { ConditionType = c, IsSelected = false }).ToList();
@@ -138,7 +133,6 @@ namespace CarShowroom.ViewModels
                 Name = discount.Name ?? string.Empty;
                 Cost = discount.Cost?.ToString("F2") ?? string.Empty;
                 
-                // Загружаем даты
                 if (discount.StartDate.HasValue)
                 {
                     StartDate = discount.StartDate.Value.ToDateTime(TimeOnly.MinValue);
@@ -150,7 +144,6 @@ namespace CarShowroom.ViewModels
                     HasDateRange = true;
                 }
                 
-                // Парсим описание и заполняем поля
                 ParseDescription(discount.Description ?? string.Empty);
             }
         }
@@ -160,9 +153,6 @@ namespace CarShowroom.ViewModels
             if (string.IsNullOrWhiteSpace(description))
                 return;
 
-            // Парсим условия, сохраняя оригинальный регистр для значений
-            // Используем точку с запятой и перенос строки для разделения основных условий (новый формат)
-            // Если точка с запятой не найдена, используем запятую для обратной совместимости (старый формат)
             var conditions = description.Contains(';') 
                 ? description.Split(new[] { ';', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 : description.Split(new[] { ',', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -172,7 +162,6 @@ namespace CarShowroom.ViewModels
                 var trimmed = condition.Trim();
                 var trimmedLower = trimmed.ToLower();
                 
-                // Цена
                 if (trimmedLower.StartsWith("цена>") || trimmedLower.StartsWith("цена >"))
                 {
                     if (TryParseValue(trimmed, out float value))
@@ -184,7 +173,6 @@ namespace CarShowroom.ViewModels
                         MaxPrice = value.ToString("F0");
                 }
                 
-                // Год
                 else if (trimmedLower.StartsWith("год>") || trimmedLower.StartsWith("год >"))
                 {
                     if (TryParseValue(trimmed, out float value))
@@ -196,7 +184,6 @@ namespace CarShowroom.ViewModels
                         MaxYear = value.ToString("F0");
                 }
                 
-                // Тип (поддерживаем множественные значения через запятую)
                 else if (trimmedLower.StartsWith("тип=") || trimmedLower.StartsWith("тип ="))
                 {
                     var typeValue = ExtractValue(trimmed);
@@ -213,7 +200,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Бренд (поддерживаем множественные значения через запятую)
                 else if (trimmedLower.StartsWith("бренд=") || trimmedLower.StartsWith("бренд ="))
                 {
                     var brandValue = ExtractValue(trimmed);
@@ -230,7 +216,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Состояние (поддерживаем множественные значения через запятую)
                 else if (trimmedLower.StartsWith("состояние=") || trimmedLower.StartsWith("состояние ="))
                 {
                     var conditionValue = ExtractValue(trimmed);
@@ -247,7 +232,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Пробег
                 else if (trimmedLower.StartsWith("пробег>") || trimmedLower.StartsWith("пробег >"))
                 {
                     if (TryParseValue(trimmed, out float value))
@@ -259,7 +243,6 @@ namespace CarShowroom.ViewModels
                         MaxMileage = value.ToString("F0");
                 }
                 
-                // Клиент
                 else if (trimmedLower.Contains("первый_клиент") || trimmedLower.Contains("первый клиент") || trimmedLower.Contains("первая покупка"))
                 {
                     IsFirstClient = true;
@@ -269,7 +252,6 @@ namespace CarShowroom.ViewModels
                     IsVipClient = true;
                 }
                 
-                // Покупки
                 else if (trimmedLower.StartsWith("покупок>=") || trimmedLower.StartsWith("покупок >="))
                 {
                     if (TryParseValue(trimmed, out float value))
@@ -325,59 +307,49 @@ namespace CarShowroom.ViewModels
         {
             var conditions = new List<string>();
             
-            // Цена
             if (!string.IsNullOrWhiteSpace(MinPrice) && float.TryParse(MinPrice, out float minPrice))
                 conditions.Add($"цена>{minPrice:F0}");
             if (!string.IsNullOrWhiteSpace(MaxPrice) && float.TryParse(MaxPrice, out float maxPrice))
                 conditions.Add($"цена<{maxPrice:F0}");
             
-            // Год
             if (!string.IsNullOrWhiteSpace(MinYear) && float.TryParse(MinYear, out float minYear))
                 conditions.Add($"год>{minYear:F0}");
             if (!string.IsNullOrWhiteSpace(MaxYear) && float.TryParse(MaxYear, out float maxYear))
                 conditions.Add($"год<{maxYear:F0}");
             
-            // Тип (множественный выбор)
             var selectedTypes = CarTypeSelectionItems.Where(t => t.IsSelected && !string.IsNullOrWhiteSpace(t.CarType.Name)).Select(t => t.CarType.Name).ToList();
             if (selectedTypes.Any())
                 conditions.Add($"тип={string.Join(",", selectedTypes)}");
             
-            // Бренд (множественный выбор)
             var selectedBrands = BrandSelectionItems.Where(b => b.IsSelected && !string.IsNullOrWhiteSpace(b.Brand.Name)).Select(b => b.Brand.Name).ToList();
             if (selectedBrands.Any())
                 conditions.Add($"бренд={string.Join(",", selectedBrands)}");
             
-            // Состояние (множественный выбор)
             var selectedConditions = ConditionTypeSelectionItems.Where(c => c.IsSelected && !string.IsNullOrWhiteSpace(c.ConditionType.Name)).Select(c => c.ConditionType.Name).ToList();
             if (selectedConditions.Any())
                 conditions.Add($"состояние={string.Join(",", selectedConditions)}");
             
-            // Пробег
             if (!string.IsNullOrWhiteSpace(MinMileage) && float.TryParse(MinMileage, out float minMileage))
                 conditions.Add($"пробег>{minMileage:F0}");
             if (!string.IsNullOrWhiteSpace(MaxMileage) && float.TryParse(MaxMileage, out float maxMileage))
                 conditions.Add($"пробег<{maxMileage:F0}");
             
-            // Клиент
             if (IsFirstClient)
                 conditions.Add("первый_клиент");
             if (IsVipClient)
                 conditions.Add("vip_клиент");
             
-            // Покупки
             if (!string.IsNullOrWhiteSpace(MinPurchases) && float.TryParse(MinPurchases, out float minPurchases))
                 conditions.Add($"покупок>={minPurchases:F0}");
             if (!string.IsNullOrWhiteSpace(MaxPurchases) && float.TryParse(MaxPurchases, out float maxPurchases))
                 conditions.Add($"покупок<{maxPurchases:F0}");
             
-            // Используем точку с запятой для разделения основных условий, чтобы запятая могла использоваться для множественных значений внутри условий
             return string.Join("; ", conditions);
         }
 
         [RelayCommand]
         private async Task SaveDiscountAsync()
         {
-            // Валидация
             if (string.IsNullOrWhiteSpace(Name))
             {
                 await Shell.Current.DisplayAlert("Ошибка", "Введите название акции", "OK");
@@ -396,14 +368,12 @@ namespace CarShowroom.ViewModels
                 return;
             }
 
-            // Валидация дат
             if (HasDateRange && EndDate < StartDate)
             {
                 await Shell.Current.DisplayAlert("Ошибка", "Дата окончания не может быть раньше даты начала", "OK");
                 return;
             }
 
-            // Формируем описание из заполненных полей
             var description = BuildDescription();
             
             var discount = new Discount

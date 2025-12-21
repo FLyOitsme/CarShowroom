@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CarShowroom.Interfaces;
-using DataLayer.Entities;
+using Dom;
 
 namespace CarShowroom.ViewModels
 {
@@ -193,7 +193,6 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private async Task SaveCarAsync()
         {
-            // Валидация
             if (SelectedBrand == null ||
                 SelectedModel == null ||
                 string.IsNullOrWhiteSpace(Year) ||

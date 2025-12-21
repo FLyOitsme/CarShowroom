@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:Converters="clr-namespace:CarShowroom.Converters"
+             xmlns:Converters="clr-namespace:CarShowroom.Converters;assembly=BLL"
              x:Class="CarShowroom.AddEditCarPage"
              Title="{Binding Title}"
              BackgroundColor="White">
@@ -16,10 +16,10 @@
                 StrokeShape="RoundRectangle 12"
                 Padding="16">
                 <StackLayout Spacing="12">
-                    <Image 
-                        x:Name="CarImage"
+                <Image 
+                    x:Name="CarImage"
                         Source="{Binding ImageUrl, Converter={StaticResource ImageUrlConverter}}"
-                        Aspect="AspectFit"
+                    Aspect="AspectFit"
                         HeightRequest="200" 
                         BackgroundColor="{StaticResource Gray100}" />
                     

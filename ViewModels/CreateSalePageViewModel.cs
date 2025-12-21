@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CarShowroom.Interfaces;
-using DataLayer.Entities;
+using Dom;
 using CommunityToolkit.Maui.Storage;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.ApplicationModel;
@@ -140,7 +140,6 @@ namespace CarShowroom.ViewModels
 
         public void Initialize(long? carId = null)
         {
-            // Отменяем предыдущие операции, если они есть
             try
             {
                 _cancellationTokenSource?.Cancel();
@@ -148,24 +147,19 @@ namespace CarShowroom.ViewModels
             }
             catch { }
             
-            // Создаем новый CancellationTokenSource
             _cancellationTokenSource = new CancellationTokenSource();
             
             _isPageActive = true;
             _carId = carId;
             
-            // Блокируем навигацию
             IsNavigationLocked = true;
-            // Уведомляем главную страницу о блокировке
             MessagingCenter.Send(this, "NavigationLocked", true);
             
-            // Асинхронно ждем немного перед началом загрузки, чтобы дать время предыдущим операциям завершиться
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    // Увеличиваем задержку, чтобы дать время всем операциям с БД завершиться
-                    await Task.Delay(300); // Задержка для завершения предыдущих операций
+                    await Task.Delay(300);
                     if (_isPageActive && _cancellationTokenSource != null && !_cancellationTokenSource.Token.IsCancellationRequested)
                     {
                         await MainThread.InvokeOnMainThreadAsync(() =>
@@ -183,14 +177,10 @@ namespace CarShowroom.ViewModels
 
         public void ClearData()
         {
-            // Помечаем страницу как неактивной ПЕРЕД отменой операций,
-            // чтобы предотвратить запуск новых операций
             _isPageActive = false;
             
-            // Сбрасываем флаг проверки скидок, чтобы разблокировать любые ожидающие операции
             _isCheckingDiscounts = false;
             
-            // Отменяем все активные операции с БД
             try
             {
                 _cancellationTokenSource?.Cancel();
@@ -199,11 +189,8 @@ namespace CarShowroom.ViewModels
             }
             catch
             {
-                // Игнорируем ошибки при отмене
             }
             
-            // Очищаем все данные формы
-            // Теперь partial методы не будут выполнять операции с БД благодаря проверке _isPageActive
             try
             {
                 SelectedCar = null;
@@ -227,7 +214,6 @@ namespace CarShowroom.ViewModels
                 _selectedAdditions.Clear();
                 _discountsAutoApplied = false;
                 
-                // Очищаем информацию об автомобиле
                 IsCarInfoVisible = false;
                 CarBrand = string.Empty;
                 CarModel = string.Empty;
@@ -242,13 +228,11 @@ namespace CarShowroom.ViewModels
                 CarPower = string.Empty;
                 CarCondition = string.Empty;
                 
-                // Разблокируем навигацию при очистке данных
                 IsNavigationLocked = false;
                 MessagingCenter.Send(this, "NavigationLocked", false);
             }
             catch
             {
-                // Игнорируем ошибки при очистке данных
             }
         }
 
@@ -259,7 +243,6 @@ namespace CarShowroom.ViewModels
             
             try
             {
-                // Загрузка автомобилей
                 var allCars = await _carService.GetAllCarsAsync();
                 if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
                 
@@ -279,7 +262,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
 
-                // Загрузка менеджеров
                 var allManagers = await _userService.GetAllManagersAsync();
                 if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
                 Managers = allManagers.Select(m => new ManagerDisplayItem
@@ -288,28 +270,21 @@ namespace CarShowroom.ViewModels
                     DisplayText = $"{m.Surname} {m.Name} {m.Patronyc}".Trim()
                 }).ToList();
 
-                // Загрузка всех клиентов
                 AllClients = await _userService.GetAllClientEntitiesAsync();
                 if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
 
-                // Загрузка дополнительных опций
                 Additions = await _saleService.GetAllAdditionsAsync();
                 if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
 
-                // Загрузка скидок
                 Discounts = await _saleService.GetAllDiscountsAsync();
                 if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
                 
-                // Автоматически применяем подходящие скидки
-                // Если автомобиль уже выбран, проверяем условия
                 if (SelectedCar != null)
                 {
                     await CheckAndApplyDiscountsAsync();
                 }
                 else
                 {
-                    // Если автомобиль не выбран, не показываем скидки
-                    // Скидки будут показаны только после выбора автомобиля
                     ApplicableDiscounts.Clear();
                 }
             }
@@ -325,13 +300,11 @@ namespace CarShowroom.ViewModels
             if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true || Discounts == null || !Discounts.Any() || SelectedCar == null)
                 return;
 
-            // Получаем количество покупок клиента
             int purchaseCount = 0;
-            if (SelectedClient != null)
+            if (SelectedClient is not null)
             {
                 purchaseCount = await _saleService.GetClientPurchaseCountAsync(SelectedClient.Id, null).ConfigureAwait(false);
                 if (!_isPageActive) return;
-                // Небольшая задержка для завершения операции с БД
                 await Task.Delay(50).ConfigureAwait(false);
                 if (!_isPageActive) return;
             }
@@ -339,17 +312,14 @@ namespace CarShowroom.ViewModels
             {
                 purchaseCount = await _saleService.GetClientPurchaseCountAsync(null, ClientName).ConfigureAwait(false);
                 if (!_isPageActive) return;
-                // Небольшая задержка для завершения операции с БД
                 await Task.Delay(50).ConfigureAwait(false);
                 if (!_isPageActive) return;
             }
 
             var applicableDiscounts = new List<Discount>();
             
-            // Определяем, выбран ли клиент (либо через SelectedClient, либо через ClientName)
-            bool isClientSelected = SelectedClient != null || !string.IsNullOrWhiteSpace(ClientName);
+            bool isClientSelected = SelectedClient is not null || !string.IsNullOrWhiteSpace(ClientName);
             
-            // Выполняем проверки последовательно, чтобы избежать конфликтов с DbContext
             foreach (var discount in Discounts)
             {
                 try
@@ -361,23 +331,18 @@ namespace CarShowroom.ViewModels
                         applicableDiscounts.Add(discount);
                     }
                     
-                    // Небольшая задержка между проверками для избежания конфликтов с БД
                     await Task.Delay(10).ConfigureAwait(false);
                 }
                 catch
                 {
-                    // Пропускаем скидку при ошибке проверки
                     continue;
                 }
             }
             
-            // Обновляем список применимых скидок для отображения менеджеру
             ApplicableDiscounts = applicableDiscounts;
             
-            // Обновляем список элементов выбора скидок
             UpdateDiscountSelectionItems(applicableDiscounts);
             
-            // Выбираем только одну скидку - с наибольшим процентом
             if (applicableDiscounts.Any())
             {
                 var bestDiscount = applicableDiscounts
@@ -385,7 +350,6 @@ namespace CarShowroom.ViewModels
                     .First();
                 SelectedDiscount = bestDiscount;
                 
-                // Обновляем выбор в элементах выбора
                 foreach (var item in DiscountSelectionItems)
                 {
                     item.IsSelected = item.Discount.Id == bestDiscount.Id;
@@ -395,7 +359,6 @@ namespace CarShowroom.ViewModels
             {
                 SelectedDiscount = null;
                 
-                // Снимаем выбор со всех элементов
                 foreach (var item in DiscountSelectionItems)
                 {
                     item.IsSelected = false;
@@ -404,36 +367,29 @@ namespace CarShowroom.ViewModels
             
             _discountsAutoApplied = true;
             
-            // Проверяем, что страница все еще активна перед обновлением цены
             if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
             
-            // Небольшая задержка перед обновлением цены, чтобы избежать параллельных запросов
             await Task.Delay(100).ConfigureAwait(false);
             if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
             
-            // Вызываем обновление цены синхронно, чтобы избежать параллельных запросов
             await UpdateFinalPriceAsync().ConfigureAwait(false);
             
-            // Проверяем еще раз после обновления цены
             if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
             
-            // Уведомляем UI о необходимости обновить выбранные элементы
             OnDiscountsAutoApplied();
         }
 
         private async Task<bool> IsDiscountApplicableAsync(Discount discount, Car car, int clientPurchaseCount, bool isClientSelected)
         {
-            // Проверяем срок действия акции
             if (discount.StartDate.HasValue || discount.EndDate.HasValue)
             {
                 var today = DateOnly.FromDateTime(DateTime.Now);
                 if (discount.StartDate.HasValue && today < discount.StartDate.Value)
-                    return false; // Акция еще не началась
+                    return false;
                 if (discount.EndDate.HasValue && today > discount.EndDate.Value)
-                    return false; // Акция уже закончилась
+                    return false;
             }
 
-            // Если описание пустое, скидка применяется ко всем автомобилям
             if (string.IsNullOrWhiteSpace(discount.Description))
             {
                 return true;
@@ -441,7 +397,6 @@ namespace CarShowroom.ViewModels
 
             var description = discount.Description.ToLower().Trim();
             
-            // Проверяем, есть ли в описании условия, связанные с клиентом
             bool hasClientConditions = description.Contains("первый_клиент") || 
                                       description.Contains("первый клиент") || 
                                       description.Contains("первая покупка") ||
@@ -455,15 +410,10 @@ namespace CarShowroom.ViewModels
                                       description.Contains("покупок>=") ||
                                       description.Contains("покупок<=");
             
-            // Если скидка связана с клиентом, но клиент не выбран, скидка не применяется
             if (hasClientConditions && !isClientSelected)
             {
                 return false;
             }
-            
-            // Парсим условия из описания
-            // Формат: "цена>1000000; год<2020; тип=Седан; бренд=BMW,Audi; состояние=Новый; пробег<50000; первый_клиент; vip_клиент"
-            // Используем точку с запятой и перенос строки для разделения основных условий, запятая используется для значений внутри условий
             
             var conditions = description.Split(new[] { ';', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             
@@ -471,7 +421,6 @@ namespace CarShowroom.ViewModels
             {
                 var trimmedCondition = condition.Trim().ToLower();
                 
-                // Проверка цены
                 if (trimmedCondition.StartsWith("цена>") || trimmedCondition.StartsWith("цена >"))
                 {
                     if (TryParseValue(trimmedCondition, "цена", out float minPrice))
@@ -497,7 +446,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Проверка года
                 else if (trimmedCondition.StartsWith("год>") || trimmedCondition.StartsWith("год >"))
                 {
                     if (TryParseValue(trimmedCondition, "год", out float minYear))
@@ -523,7 +471,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Проверка типа (поддерживаем множественные значения через запятую)
                 else if (trimmedCondition.StartsWith("тип=") || trimmedCondition.StartsWith("тип ="))
                 {
                     var typeNames = ExtractValue(trimmedCondition, "тип").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -548,7 +495,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Проверка бренда (поддерживаем множественные значения через запятую)
                 else if (trimmedCondition.StartsWith("бренд=") || trimmedCondition.StartsWith("бренд ="))
                 {
                     var brandNames = ExtractValue(trimmedCondition, "бренд").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -573,7 +519,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Проверка состояния (поддерживаем множественные значения через запятую)
                 else if (trimmedCondition.StartsWith("состояние=") || trimmedCondition.StartsWith("состояние ="))
                 {
                     var conditionNames = ExtractValue(trimmedCondition, "состояние").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -598,7 +543,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Проверка пробега
                 else if (trimmedCondition.StartsWith("пробег<") || trimmedCondition.StartsWith("пробег <"))
                 {
                     if (TryParseValue(trimmedCondition, "пробег", out float maxMileage))
@@ -616,7 +560,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Проверка количества покупок клиента
                 else if (trimmedCondition.StartsWith("покупок>") || trimmedCondition.StartsWith("покупок >"))
                 {
                     if (TryParseValue(trimmedCondition, "покупок", out float minPurchases))
@@ -650,31 +593,25 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Проверка первого клиента (первая покупка)
                 else if (trimmedCondition == "первый_клиент" || trimmedCondition == "первый клиент" || trimmedCondition == "первая покупка")
                 {
-                    // Если это условие для первого клиента, проверяем, что у клиента 0 покупок
                     if (clientPurchaseCount > 0)
                         return false;
                 }
                 
-                // Проверка VIP клиента (3+ покупок)
                 else if (trimmedCondition == "vip_клиент" || trimmedCondition == "vip клиент" || trimmedCondition == "вип клиент")
                 {
-                    // Если это условие для VIP клиента, проверяем, что у клиента 3 или больше покупок
                     if (clientPurchaseCount < 3)
                         return false;
                 }
             }
             
-            // Если все условия выполнены, скидка применима
             return true;
         }
 
         private bool TryParseValue(string condition, string prefix, out float value)
         {
             value = 0;
-            // Ищем оператор сравнения
             int operatorIndex = -1;
             if (condition.Contains(">="))
                 operatorIndex = condition.IndexOf(">=");
@@ -690,7 +627,6 @@ namespace CarShowroom.ViewModels
             if (operatorIndex >= 0 && operatorIndex < condition.Length - 1)
             {
                 var valuePart = condition.Substring(operatorIndex + 1).Trim();
-                // Убираем возможные пробелы и символы оператора
                 valuePart = valuePart.TrimStart('=', '>', '<');
                 if (float.TryParse(valuePart, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out float parsedValue))
                 {
@@ -727,10 +663,8 @@ namespace CarShowroom.ViewModels
         {
             if (!_isPageActive) return;
             
-            // Перепроверяем условия скидок при изменении имени клиента
             if (!string.IsNullOrWhiteSpace(value) && Discounts != null && Discounts.Any() && SelectedCar != null)
             {
-                // Небольшая задержка, чтобы пользователь успел ввести полное имя
                 Task.Delay(500).ContinueWith(async _ =>
                 {
                     if (!_isPageActive) return;
@@ -751,7 +685,6 @@ namespace CarShowroom.ViewModels
             {
                 Price = value.Car.Cost?.ToString("F0") ?? "0";
                 
-                // Обновляем информацию об автомобиле
                 var car = value.Car;
                 CarBrand = car.Model?.Brand?.Name ?? "—";
                 CarModel = car.Model?.Name ?? "—";
@@ -767,7 +700,6 @@ namespace CarShowroom.ViewModels
                 CarCondition = car.Condition?.Name ?? "—";
                 IsCarInfoVisible = true;
                 
-                // Перепроверяем условия скидок при выборе автомобиля
                 if (Discounts != null && Discounts.Any())
                 {
                     RecheckDiscountConditions();
@@ -775,7 +707,6 @@ namespace CarShowroom.ViewModels
             }
             else
             {
-                // Если автомобиль не выбран, скрываем информацию и скидки
                 IsCarInfoVisible = false;
                 CarBrand = string.Empty;
                 CarModel = string.Empty;
@@ -814,7 +745,7 @@ namespace CarShowroom.ViewModels
         {
             if (!_isPageActive) return;
             
-            if (value != null)
+            if (value is not null)
             {
                 var fullName = $"{value.Surname} {value.Name} {value.Patronyc}".Trim();
                 ClientName = fullName;
@@ -824,7 +755,6 @@ namespace CarShowroom.ViewModels
                 ShowAllClients = false;
                 ClientSearchText = string.Empty;
                 
-                // Перепроверяем условия скидок при выборе клиента
                 if (Discounts != null && Discounts.Any() && SelectedCar != null)
                 {
                     RecheckDiscountConditions();
@@ -838,7 +768,6 @@ namespace CarShowroom.ViewModels
             var searchText = ClientSearchText?.Trim();
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                // Если поиск пустой, показываем всех клиентов
                 FoundClients = AllClients;
                 IsClientsVisible = FoundClients.Any();
                 return;
@@ -881,7 +810,6 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private void SelectClient(Client? client)
         {
-            // Логика выбора клиента обрабатывается в OnSelectedClientChanged
             SelectedClient = client;
         }
 
@@ -933,7 +861,6 @@ namespace CarShowroom.ViewModels
                 return;
             }
 
-            // Добавляем стоимость дополнительных опций
             decimal additionsCost = 0;
             foreach (var addition in _selectedAdditions)
             {
@@ -945,19 +872,16 @@ namespace CarShowroom.ViewModels
 
             var priceWithAdditions = basePrice + additionsCost;
 
-            // Применяем скидку (только одну)
-            var selectedDiscountIds = _selectedDiscount != null 
-                ? new List<int> { _selectedDiscount.Id } 
+            var selectedDiscountIds = SelectedDiscount is not null 
+                ? new List<int> { SelectedDiscount.Id } 
                 : new List<int>();
 
             try
             {
-                // Проверяем, что страница все еще активна перед запросом к БД
                 if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
                 
                 var finalPrice = await _saleService.CalculateFinalPriceAsync(priceWithAdditions, selectedDiscountIds);
                 
-                // Проверяем еще раз после запроса
                 if (!_isPageActive || _cancellationTokenSource?.Token.IsCancellationRequested == true) return;
                 
                 FinalPrice = $"Итоговая цена: {finalPrice:N0} ₽";
@@ -968,11 +892,9 @@ namespace CarShowroom.ViewModels
             }
             catch (OperationCanceledException)
             {
-                // Игнорируем отмененные операции
             }
             catch
             {
-                // Игнорируем другие ошибки, только если страница все еще активна
                 if (_isPageActive)
                 {
                     FinalPrice = "Итоговая цена: 0 ₽";
@@ -992,18 +914,14 @@ namespace CarShowroom.ViewModels
         {
             if (!_isPageActive) return;
             
-            // При одиночном выборе используем SelectedItem из биндинга
-            // Если SelectedDiscount изменился, обновляем цену
             _discountsAutoApplied = true;
             UpdateFinalPriceCommand.ExecuteAsync(null);
         }
 
         private void UpdateDiscountSelectionItems(List<Discount> discounts)
         {
-            // Сохраняем текущий выбор
             var currentSelectedId = SelectedDiscount?.Id;
             
-            // Обновляем список элементов выбора
             DiscountSelectionItems = discounts.Select(d => new DiscountSelectionItem 
             { 
                 Discount = d, 
@@ -1017,7 +935,6 @@ namespace CarShowroom.ViewModels
             
             if (item.IsSelected)
             {
-                // Если выбрана скидка, снимаем выбор со всех остальных
                 foreach (var discountItem in DiscountSelectionItems)
                 {
                     if (discountItem != item)
@@ -1029,7 +946,6 @@ namespace CarShowroom.ViewModels
             }
             else
             {
-                // Если снят выбор, очищаем выбранную скидку
                 SelectedDiscount = null;
             }
             
@@ -1042,7 +958,6 @@ namespace CarShowroom.ViewModels
         {
             if (!_isPageActive) return;
             
-            // Валидация
             if (SelectedCar == null || SelectedCar.Car == null)
             {
                 await Shell.Current.DisplayAlert("Ошибка", "Выберите автомобиль", "OK");
@@ -1069,14 +984,11 @@ namespace CarShowroom.ViewModels
 
             try
             {
-                // Создаем или получаем Client entity для связи с продажей
-                // Всегда используем CreateOrGetClientEntityAsync, чтобы убедиться, что данные сохранены
                 var clientEntity = await _userService.CreateOrGetClientEntityAsync(
                     ClientName.Trim(),
                     ClientPhone?.Trim(),
                     ClientPassData?.Trim());
 
-                // Рассчитываем итоговую цену с опциями и скидками
                 decimal additionsCost = 0;
                 foreach (var addition in _selectedAdditions)
                 {
@@ -1092,7 +1004,6 @@ namespace CarShowroom.ViewModels
                     : new List<int>();
                 var finalPrice = await _saleService.CalculateFinalPriceAsync(priceWithAdditions, selectedDiscountIds);
 
-                // Проверяем, что все данные корректны (проверки уже были выше, но убеждаемся что объекты загружены)
                 if (SelectedCar?.Car == null)
                 {
                     await Shell.Current.DisplayAlert("Ошибка", "Не выбран автомобиль", "OK");
@@ -1105,11 +1016,9 @@ namespace CarShowroom.ViewModels
                     return;
                 }
 
-                // Проверяем, что ID автомобиля валиден
                 var carId = SelectedCar.Car.Id;
                 var managerId = SelectedManager.Manager.Id;
-                
-                // Создаем продажу
+
                 var sale = new Sale
                 {
                     CarId = carId,
@@ -1121,14 +1030,11 @@ namespace CarShowroom.ViewModels
 
                 var selectedAdditionIds = _selectedAdditions.Select(a => a.Id).ToList();
 
-                // Сохраняем продажу
                 var createdSale = await _saleService.CreateSaleAsync(sale, selectedAdditionIds, selectedDiscountIds);
 
-                // Разблокируем навигацию после успешного создания
                 IsNavigationLocked = false;
                 MessagingCenter.Send(this, "NavigationLocked", false);
                 
-                // Открываем страницу предпросмотра договора
                 await Shell.Current.GoToAsync($"ContractPreviewPage?saleId={createdSale.Id}&basePrice={price}&finalPrice={finalPrice}");
             }
             catch (Exception ex)
@@ -1145,24 +1051,19 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private async Task CancelAsync()
         {
-            // Устанавливаем флаг, что отмена вызвана явно
             IsCancelling = true;
             
             try
             {
-                // Отменяем все активные операции
                 ClearData();
                 
-                // Разблокируем навигацию после отмены
                 IsNavigationLocked = false;
                 MessagingCenter.Send(this, "NavigationLocked", false);
                 
-                // Возвращаемся на предыдущую страницу
                 await Shell.Current.GoToAsync("..");
             }
             catch
             {
-                // Если навигация не удалась, все равно пытаемся вернуться
                 try
                 {
                     IsNavigationLocked = false;
@@ -1171,12 +1072,10 @@ namespace CarShowroom.ViewModels
                 }
                 catch
                 {
-                    // Игнорируем ошибки навигации
                 }
             }
             finally
             {
-                // Сбрасываем флаг после завершения
                 IsCancelling = false;
             }
         }
@@ -1185,7 +1084,6 @@ namespace CarShowroom.ViewModels
         {
             try
             {
-                // Получаем полную информацию о продаже с AsNoTracking
                 var fullSale = await _saleService.GetSaleByIdAsync(sale.Id);
                 if (fullSale == null || fullSale.Car == null)
                 {
@@ -1193,11 +1091,9 @@ namespace CarShowroom.ViewModels
                     return;
                 }
 
-                // Получаем опции и скидки
                 var additions = await _saleService.GetSaleAdditionsAsync(sale.Id);
                 var discounts = await _saleService.GetSaleDiscountsAsync(sale.Id);
 
-                // Генерируем PDF
                 var pdfBytes = _pdfContractService.GenerateContract(
                     fullSale,
                     client,
@@ -1208,7 +1104,6 @@ namespace CarShowroom.ViewModels
                     basePrice,
                     finalPrice);
 
-                // Сохраняем PDF
                 await SavePdfFileAsync(pdfBytes, $"Договор_№{sale.Id}_{DateTime.Now:yyyyMMdd}.pdf");
             }
             catch (Exception ex)
@@ -1221,7 +1116,6 @@ namespace CarShowroom.ViewModels
         {
             try
             {
-                // Используем FileSaver для выбора места сохранения, если доступен
                 if (_fileSaver != null)
                 {
                     using var stream = new MemoryStream(pdfBytes);
@@ -1238,10 +1132,8 @@ namespace CarShowroom.ViewModels
                     }
                     else
                     {
-                        // Если пользователь отменил выбор или произошла ошибка
                         if (fileSaverResult.Exception != null)
                         {
-                            // Если пользователь отменил, просто сообщаем об этом
                             if (fileSaverResult.Exception.Message.Contains("cancel", StringComparison.OrdinalIgnoreCase) ||
                                 fileSaverResult.Exception.Message.Contains("отмен", StringComparison.OrdinalIgnoreCase))
                             {
@@ -1252,7 +1144,6 @@ namespace CarShowroom.ViewModels
                             }
                             else
                             {
-                                // При другой ошибке сохраняем в кэш как резервный вариант
                                 await SaveToCacheAsync(pdfBytes, fileName, fileSaverResult.Exception.Message);
                                 return;
                             }
@@ -1266,13 +1157,11 @@ namespace CarShowroom.ViewModels
                 }
                 else
                 {
-                    // Если FileSaver не доступен, сохраняем в кэш
                     await SaveToCacheAsync(pdfBytes, fileName, "FileSaver не доступен");
                 }
             }
             catch (Exception ex)
             {
-                // Если FileSaver не доступен, сохраняем в кэш
                 await SaveToCacheAsync(pdfBytes, fileName, ex.Message);
             }
         }

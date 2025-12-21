@@ -1,4 +1,5 @@
 using CarShowroom.ViewModels;
+using Dom;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CarShowroom
@@ -22,7 +23,7 @@ namespace CarShowroom
 
         private async void OnCarSelected(object sender, SelectionChangedEventArgs e)
         {
-            if (e.CurrentSelection.FirstOrDefault() is DataLayer.Entities.Car selectedCar)
+            if (e.CurrentSelection.FirstOrDefault() is Car selectedCar)
             {
                 await ViewModel.CarSelectedCommand.ExecuteAsync(selectedCar);
             }

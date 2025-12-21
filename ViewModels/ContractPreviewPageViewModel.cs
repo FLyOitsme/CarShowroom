@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CarShowroom.Interfaces;
-using DataLayer.Entities;
+using Dom;
 using CommunityToolkit.Maui.Storage;
 using Microsoft.Maui.ApplicationModel;
 
@@ -97,7 +97,6 @@ namespace CarShowroom.ViewModels
                 ContractNumber = $"№ {Sale.Id}";
                 ContractDate = Sale.Date?.ToString("dd.MM.yyyy") ?? string.Empty;
 
-                // Формируем информацию об автомобиле
                 CarInfo = $"Марка: {Car.Model?.Brand?.Name ?? "Неизвестно"}\n" +
                          $"Модель: {Car.Model?.Name ?? "Неизвестно"}\n" +
                          $"Год выпуска: {Car.Year}\n" +
@@ -108,7 +107,6 @@ namespace CarShowroom.ViewModels
                          $"Тип кузова: {Car.Type?.Name ?? "Не указан"}\n" +
                          $"Состояние: {Car.Condition?.Name ?? "Не указано"}";
 
-                // Формируем информацию о цене
                 var additionsCost = Additions.Sum(a => (decimal)(a.Cost ?? 0));
                 var priceWithAdditions = BasePrice + additionsCost;
                 DiscountAmount = priceWithAdditions - FinalPrice;
@@ -124,7 +122,6 @@ namespace CarShowroom.ViewModels
                 }
                 PriceInfo += $"\nИтоговая цена: {FinalPrice:N0} ₽";
 
-                // Формируем информацию о дополнительных опциях
                 if (Additions.Any())
                 {
                     AdditionsInfo = string.Join("\n", Additions.Select(a => $"• {a.Name}: {a.Cost:N0} ₽"));
@@ -134,7 +131,6 @@ namespace CarShowroom.ViewModels
                     AdditionsInfo = "Нет";
                 }
 
-                // Формируем информацию о скидках
                 if (Discounts.Any())
                 {
                     var discountsList = Discounts.Select(d => 
@@ -169,7 +165,6 @@ namespace CarShowroom.ViewModels
 
             try
             {
-                // Генерируем PDF
                 var pdfBytes = _pdfContractService.GenerateContract(
                     Sale,
                     Client,
@@ -180,7 +175,6 @@ namespace CarShowroom.ViewModels
                     BasePrice,
                     FinalPrice);
 
-                // Сохраняем PDF
                 await SavePdfFileAsync(pdfBytes, $"Договор_№{Sale.Id}_{DateTime.Now:yyyyMMdd}.pdf");
             }
             catch (Exception ex)
@@ -268,7 +262,6 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private async Task CloseAsync()
         {
-            // Возвращаемся на страницу списка продаж
             await Shell.Current.GoToAsync("///SalesListPage");
         }
     }

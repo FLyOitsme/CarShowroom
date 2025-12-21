@@ -66,7 +66,6 @@ namespace CarShowroom.ViewModels
         {
             _reportService = reportService;
             
-            // Генерируем список годов (текущий год и 5 предыдущих)
             var currentYear = DateTime.Now.Year;
             for (int i = 0; i < 6; i++)
             {
@@ -82,7 +81,6 @@ namespace CarShowroom.ViewModels
             IsLoading = true;
             try
             {
-                // Выполняем все запросы строго последовательно, чтобы избежать конфликтов с DbContext
                 TotalSales = await _reportService.GetTotalSalesCountAsync().ConfigureAwait(false);
                 AvailableCars = await _reportService.GetAvailableCarsCountAsync().ConfigureAwait(false);
                 SoldCars = await _reportService.GetSoldCarsCountAsync().ConfigureAwait(false);
@@ -90,15 +88,12 @@ namespace CarShowroom.ViewModels
                 AverageSalePrice = await _reportService.GetAverageSalePriceAsync().ConfigureAwait(false);
                 ActiveDiscounts = await _reportService.GetActiveDiscountsCountAsync().ConfigureAwait(false);
                 
-                // Статистика за период
                 PeriodSalesCount = await _reportService.GetTotalSalesCountByPeriodAsync(PeriodStartDate, PeriodEndDate).ConfigureAwait(false);
                 PeriodRevenue = await _reportService.GetRevenueByPeriodAsync(PeriodStartDate, PeriodEndDate).ConfigureAwait(false);
                 
-                // Статистика по брендам и менеджерам
                 SalesByBrand = await _reportService.GetSalesByBrandAsync().ConfigureAwait(false);
                 SalesByManager = await _reportService.GetSalesByManagerAsync().ConfigureAwait(false);
                 
-                // Преобразуем словари в списки для отображения (на главном потоке)
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     SalesByBrandItems = SalesByBrand.Select(kvp => new BrandSalesItem 
@@ -114,7 +109,6 @@ namespace CarShowroom.ViewModels
                     }).OrderByDescending(x => x.SalesCount).ToList();
                 });
                 
-                // Месячная статистика
                 MonthlyStatistics = await _reportService.GetMonthlyStatisticsAsync(SelectedYear).ConfigureAwait(false);
             }
             catch (Exception ex)

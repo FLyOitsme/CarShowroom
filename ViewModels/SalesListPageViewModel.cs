@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CarShowroom.Interfaces;
-using DataLayer.Entities;
+using Dom;
 using CommunityToolkit.Maui.Storage;
 
 namespace CarShowroom.ViewModels
@@ -43,7 +43,7 @@ namespace CarShowroom.ViewModels
         [RelayCommand]
         private async Task SaleSelectedAsync(Sale? sale)
         {
-            if (sale != null)
+            if (sale is not null)
             {
                 var action = await Shell.Current.DisplayActionSheet(
                     "Выберите действие",
@@ -81,7 +81,6 @@ namespace CarShowroom.ViewModels
         {
             try
             {
-                // Получаем полную информацию о продаже
                 var fullSale = await _saleService.GetSaleByIdAsync(sale.Id);
                 if (fullSale == null || fullSale.Car == null || fullSale.Manager == null || fullSale.Client == null)
                 {
@@ -89,21 +88,15 @@ namespace CarShowroom.ViewModels
                     return;
                 }
 
-                // Получаем опции и скидки
                 var additions = await _saleService.GetSaleAdditionsAsync(sale.Id);
                 var discounts = await _saleService.GetSaleDiscountsAsync(sale.Id);
 
-                // Рассчитываем цены
-                // В базе хранится итоговая цена (после всех скидок и с опциями)
                 decimal finalPrice = (decimal)(fullSale.Cost ?? 0);
                 
-                // Рассчитываем стоимость опций
                 decimal additionsCost = additions.Sum(a => (decimal)(a.Cost ?? 0));
                 
-                // Вычитаем стоимость опций из итоговой цены, чтобы получить цену с опциями до скидок
                 decimal priceWithAdditions = finalPrice - additionsCost;
                 
-                // Применяем скидки обратно для расчета базовой цены автомобиля
                 var discountIds = discounts.Select(d => d.Id).ToList();
                 decimal basePrice = priceWithAdditions;
                 if (discountIds.Any() && priceWithAdditions > 0)
@@ -111,13 +104,11 @@ namespace CarShowroom.ViewModels
                     basePrice = await _saleService.CalculateOriginalPriceAsync(priceWithAdditions, discountIds);
                 }
                 
-                // Если расчет не удался, используем итоговую цену как базовую
                 if (basePrice <= 0)
                 {
                     basePrice = finalPrice - additionsCost;
                 }
 
-                // Генерируем PDF
                 var pdfBytes = _pdfContractService.GenerateContract(
                     fullSale,
                     fullSale.Client,
@@ -128,7 +119,6 @@ namespace CarShowroom.ViewModels
                     basePrice,
                     finalPrice);
 
-                // Сохраняем PDF
                 await SavePdfFileAsync(pdfBytes, $"Договор_№{sale.Id}_{DateTime.Now:yyyyMMdd}.pdf");
             }
             catch (Exception ex)
@@ -141,7 +131,6 @@ namespace CarShowroom.ViewModels
         {
             try
             {
-                // Используем FileSaver для выбора места сохранения, если доступен
                 if (_fileSaver != null)
                 {
                     using var stream = new MemoryStream(pdfBytes);
@@ -169,7 +158,6 @@ namespace CarShowroom.ViewModels
                     }
                 }
                 
-                // Если FileSaver не доступен или произошла ошибка, сохраняем в кэш
                 var cacheDir = FileSystem.CacheDirectory;
                 var filePath = Path.Combine(cacheDir, fileName);
                 await File.WriteAllBytesAsync(filePath, pdfBytes);
