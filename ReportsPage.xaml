@@ -65,13 +65,13 @@
                         <StackLayout Grid.Column="0">
                             <Label Text="Дата начала:" FontSize="12" TextColor="{StaticResource Gray600}" />
                             <DatePicker Date="{Binding PeriodStartDate}"
-                                       Format="dd.MM.yyyy"
+                                       Format="d MMMM yyyy"
                                        TextColor="{StaticResource Black}" />
                         </StackLayout>
                         <StackLayout Grid.Column="1">
                             <Label Text="Дата окончания:" FontSize="12" TextColor="{StaticResource Gray600}" />
                             <DatePicker Date="{Binding PeriodEndDate}"
-                                       Format="dd.MM.yyyy"
+                                       Format="d MMMM yyyy"
                                        TextColor="{StaticResource Black}" />
                         </StackLayout>
                     </Grid>

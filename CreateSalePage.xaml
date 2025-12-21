@@ -277,6 +277,7 @@
                            FontAttributes="Bold"
                            TextColor="{StaticResource Black}" />
                     <DatePicker Date="{Binding SaleDate}"
+                                Format="d MMMM yyyy"
                                 TextColor="{StaticResource Gray900}" />
                 </StackLayout>
             </Frame>

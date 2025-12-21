@@ -51,7 +51,7 @@
                                    FontSize="12"
                                    TextColor="{StaticResource Gray600}" />
                             <DatePicker Date="{Binding StartDate}"
-                                        Format="dd.MM.yyyy"
+                                        Format="d MMMM yyyy"
                                         TextColor="{StaticResource Black}" />
                         </StackLayout>
                         <StackLayout Grid.Column="1">
@@ -59,7 +59,7 @@
                                    FontSize="12"
                                    TextColor="{StaticResource Gray600}" />
                             <DatePicker Date="{Binding EndDate}"
-                                        Format="dd.MM.yyyy"
+                                        Format="d MMMM yyyy"
                                         TextColor="{StaticResource Black}" />
                         </StackLayout>
                     </Grid>

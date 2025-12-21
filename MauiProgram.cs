@@ -8,6 +8,7 @@ using CommunityToolkit.Maui.Storage;
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
 
 namespace CarShowroom
 {
@@ -15,6 +16,11 @@ namespace CarShowroom
     {
         public static MauiApp CreateMauiApp()
         {
+            // Устанавливаем русскую культуру для приложения
+            var culture = new CultureInfo("ru-RU");
+            CultureInfo.DefaultThreadCurrentCulture = culture;
+            CultureInfo.DefaultThreadCurrentUICulture = culture;
+            
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
@@ -30,7 +36,7 @@ namespace CarShowroom
 #endif
 
             // Загрузка конфигурации из appsettings.json
-            string connectionString = "Host=localhost;Database=CarShowroomBD;Username=postgres;Password=1357";
+            string connectionString = "Host=localhost;Database=bfd;Username=postgres;Password=1357";
             
             try
             {
@@ -117,28 +123,17 @@ namespace CarShowroom
                 using var scope = serviceProvider.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<CarShowroomDbContext>();
                 
-                // Проверяем, может ли приложение подключиться к базе данных
-                var canConnect = await dbContext.Database.CanConnectAsync();
-                
-                if (!canConnect)
-                {
-                    System.Diagnostics.Debug.WriteLine("Не удалось подключиться к базе данных. Убедитесь, что PostgreSQL запущен и база данных существует.");
-                    return;
-                }
-                
-                // Создаем базу данных и все таблицы, если они не существуют
-                // EnsureCreated создает БД и все таблицы на основе моделей из OnModelCreating
+                // EnsureCreatedAsync создаст базу данных и все таблицы, если они не существуют
+                // Это единственная функция EF Core, необходимая для создания БД и схемы
                 var created = await dbContext.Database.EnsureCreatedAsync();
-            }
-            catch (Npgsql.PostgresException pgEx)
-            {
-                // Специфичная обработка ошибок PostgreSQL
-                System.Diagnostics.Debug.WriteLine($"Ошибка PostgreSQL: {pgEx.Message}");
-                System.Diagnostics.Debug.WriteLine($"Код ошибки: {pgEx.SqlState}");
                 
-                if (pgEx.SqlState == "3D000") // База данных не существует
+                if (created)
                 {
-                    System.Diagnostics.Debug.WriteLine("База данных не существует. Создайте её вручную или проверьте строку подключения.");
+                    System.Diagnostics.Debug.WriteLine("База данных и таблицы успешно созданы.");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("База данных уже существует.");
                 }
             }
             catch (Exception ex)
