@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:Converters="clr-namespace:CarShowroom.Converters;assembly=BLL"
+             x:Class="CarShowroom.CarDetailsPage"
+             Title="Детали автомобиля"
+             BackgroundColor="White">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="20">
+            <!-- Изображение -->
+            <Border 
+                StrokeThickness="1"
+                Stroke="{StaticResource Gray200}"
+                BackgroundColor="White"
+                StrokeShape="RoundRectangle 12"
+                Padding="16">
+                <Image 
+                    x:Name="CarImage"
+                    Source="{Binding Car.ImageUrl, Converter={StaticResource ImageUrlConverter}}"
+                    Aspect="AspectFit"
+                    HeightRequest="250" />
+            </Border>
+
+            <!-- Название -->
+            <Label 
+                Text="{Binding CarName}"
+                FontSize="24"
+                FontAttributes="Bold"
+                TextColor="{StaticResource Black}"
+                HorizontalOptions="Center" />
+
+            <!-- Цена -->
+            <Label 
+                Text="{Binding Price}"
+                FontSize="28"
+                FontAttributes="Bold"
+                TextColor="{StaticResource AdobeAccent}"
+                HorizontalOptions="Center" />
+
+            <!-- Разделитель -->
+            <BoxView 
+                HeightRequest="1" 
+                Color="{StaticResource Gray200}" />
+
+            <!-- Характеристики -->
+            <Border 
+                StrokeThickness="1"
+                Stroke="{StaticResource Gray200}"
+                BackgroundColor="White"
+                StrokeShape="RoundRectangle 12"
+                Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label 
+                        Text="Характеристики"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource Black}" />
+
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
+                        <Label 
+                            Grid.Row="0" Grid.Column="0" 
+                            Text="Марка:" 
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource Gray900}" />
+                        <Label 
+                            Text="{Binding Brand}"
+                            Grid.Row="0" Grid.Column="1"
+                            TextColor="{StaticResource Black}" />
+
+                        <Label 
+                            Grid.Row="1" Grid.Column="0" 
+                            Text="Модель:" 
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource Gray900}" />
+                        <Label 
+                            Text="{Binding Model}"
+                            Grid.Row="1" Grid.Column="1"
+                            TextColor="{StaticResource Black}" />
+
+                        <Label 
+                            Grid.Row="2" Grid.Column="0" 
+                            Text="Год:" 
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource Gray900}" />
+                        <Label 
+                            Text="{Binding Year}"
+                            Grid.Row="2" Grid.Column="1"
+                            TextColor="{StaticResource Black}" />
+
+                        <Label 
+                            Grid.Row="3" Grid.Column="0" 
+                            Text="Цвет:" 
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource Gray900}" />
+                        <Label 
+                            Text="{Binding Color}"
+                            Grid.Row="3" Grid.Column="1"
+                            TextColor="{StaticResource Black}" />
+
+                        <Label 
+                            Grid.Row="4" Grid.Column="0" 
+                            Text="Двигатель:" 
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource Gray900}" />
+                        <Label 
+                            Text="{Binding Engine}"
+                            Grid.Row="4" Grid.Column="1"
+                            TextColor="{StaticResource Black}" />
+
+                        <Label 
+                            Grid.Row="5" Grid.Column="0" 
+                            Text="Объем:" 
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource Gray900}" />
+                        <Label 
+                            Text="{Binding EngineVolume}"
+                            Grid.Row="5" Grid.Column="1"
+                            TextColor="{StaticResource Black}" />
+
+                        <Label 
+                            Grid.Row="6" Grid.Column="0" 
+                            Text="Пробег:" 
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource Gray900}" />
+                        <Label 
+                            Text="{Binding Mileage}"
+                            Grid.Row="6" Grid.Column="1"
+                            TextColor="{StaticResource Black}" />
+
+                        <Label 
+                            Grid.Row="7" Grid.Column="0" 
+                            Text="Коробка:" 
+                            FontAttributes="Bold"
+                            TextColor="{StaticResource Gray900}" />
+                        <Label 
+                            Text="{Binding Transmission}"
+                            Grid.Row="7" Grid.Column="1"
+                            TextColor="{StaticResource Black}" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Описание -->
+            <Border 
+                StrokeThickness="1"
+                Stroke="{StaticResource Gray200}"
+                BackgroundColor="White"
+                StrokeShape="RoundRectangle 12"
+                Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label 
+                        Text="Описание"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource Black}" />
+
+                    <Label 
+                        Text="{Binding Description}"
+                        FontSize="14"
+                        TextColor="{StaticResource Gray900}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Кнопки действий -->
+            <Grid ColumnDefinitions="*" Margin="0,20,0,0">
+                <Button 
+                    Text="Оформить продажу"
+                    BackgroundColor="{StaticResource AdobeAccent}"
+                    TextColor="White"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    HeightRequest="50"
+                    Command="{Binding CreateSaleCommand}" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,12,0,0">
+                <Button 
+                    Text="Редактировать"
+                    BackgroundColor="{StaticResource Gray400}"
+                    TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
+                    Command="{Binding EditCarCommand}" />
+
+                <Button 
+                    Text="Удалить"
+                    BackgroundColor="#E91E63"
+                    TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
+                    Command="{Binding DeleteCarCommand}" />
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

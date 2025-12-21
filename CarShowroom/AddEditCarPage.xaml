@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:Converters="clr-namespace:CarShowroom.Converters;assembly=BLL"
+             x:Class="CarShowroom.AddEditCarPage"
+             Title="{Binding Title}"
+             BackgroundColor="White">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+            <!-- Изображение -->
+            <Border 
+                StrokeThickness="1"
+                Stroke="{StaticResource Gray200}"
+                BackgroundColor="White"
+                StrokeShape="RoundRectangle 12"
+                Padding="16">
+                <StackLayout Spacing="12">
+                <Image 
+                    x:Name="CarImage"
+                        Source="{Binding ImageUrl, Converter={StaticResource ImageUrlConverter}}"
+                    Aspect="AspectFit"
+                        HeightRequest="200" 
+                        BackgroundColor="{StaticResource Gray100}" />
+                    
+                    <Entry Placeholder="URL изображения"
+                           Text="{Binding ImageUrl}"
+                           TextColor="{StaticResource Black}" />
+                </StackLayout>
+            </Border>
+
+            <!-- Основная информация -->
+            <Border 
+                StrokeThickness="1"
+                Stroke="{StaticResource Gray200}"
+                BackgroundColor="White"
+                StrokeShape="RoundRectangle 12"
+                Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label 
+                        Text="Основная информация"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource Black}" />
+
+                    <Picker 
+                        Title="Марка *"
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding Brands}"
+                        SelectedItem="{Binding SelectedBrand}"
+                        ItemDisplayBinding="{Binding Name}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Picker 
+                        Title="Модель *"
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding Models}"
+                        SelectedItem="{Binding SelectedModel}"
+                        ItemDisplayBinding="{Binding Name}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Entry 
+                        Placeholder="Год *"
+                        PlaceholderColor="{StaticResource Gray500}"
+                        Keyboard="Numeric"
+                        Text="{Binding Year}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Entry 
+                        Placeholder="Цвет *"
+                        PlaceholderColor="{StaticResource Gray500}"
+                        Text="{Binding Color}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Entry 
+                        Placeholder="Цена (₽) *"
+                        PlaceholderColor="{StaticResource Gray500}"
+                        Keyboard="Numeric"
+                        Text="{Binding Price}"
+                        TextColor="{StaticResource Black}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Технические характеристики -->
+            <Border 
+                StrokeThickness="1"
+                Stroke="{StaticResource Gray200}"
+                BackgroundColor="White"
+                StrokeShape="RoundRectangle 12"
+                Padding="16">
+                <VerticalStackLayout Spacing="12">
+                    <Label 
+                        Text="Технические характеристики"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        TextColor="{StaticResource Black}" />
+
+                    <Picker 
+                        Title="Тип двигателя *"
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding EngineTypes}"
+                        SelectedItem="{Binding SelectedEngineType}"
+                        ItemDisplayBinding="{Binding Name}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Entry 
+                        Placeholder="Объем двигателя (л) *"
+                        PlaceholderColor="{StaticResource Gray500}"
+                        Keyboard="Numeric"
+                        Text="{Binding EngineVolume}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Entry 
+                        Placeholder="Мощность (л.с.)"
+                        PlaceholderColor="{StaticResource Gray500}"
+                        Keyboard="Numeric"
+                        Text="{Binding Power}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Entry 
+                        Placeholder="Пробег (км) *"
+                        PlaceholderColor="{StaticResource Gray500}"
+                        Keyboard="Numeric"
+                        Text="{Binding Mileage}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Switch 
+                            Grid.Column="0"
+                            IsToggled="{Binding IsInStock}"
+                            VerticalOptions="Center" />
+                        <Label 
+                            Grid.Column="1"
+                            Text="{Binding StockLabel}"
+                            VerticalOptions="Center"
+                            TextColor="{StaticResource Black}" />
+                    </Grid>
+
+                    <Picker 
+                        Title="Коробка передач *"
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding Transmissions}"
+                        SelectedItem="{Binding SelectedTransmission}"
+                        ItemDisplayBinding="{Binding Name}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Picker 
+                        Title="Тип кузова *"
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding CarTypes}"
+                        SelectedItem="{Binding SelectedCarType}"
+                        ItemDisplayBinding="{Binding Name}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Picker 
+                        Title="Состояние *"
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding ConditionTypes}"
+                        SelectedItem="{Binding SelectedCondition}"
+                        ItemDisplayBinding="{Binding Name}"
+                        TextColor="{StaticResource Black}" />
+
+                    <Picker 
+                        Title="Привод *"
+                        TitleColor="{StaticResource Gray500}"
+                        ItemsSource="{Binding WdTypes}"
+                        SelectedItem="{Binding SelectedWdType}"
+                        ItemDisplayBinding="{Binding Name}"
+                        TextColor="{StaticResource Black}" />
+                </VerticalStackLayout>
+            </Border>
+
+
+            <!-- Кнопки -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,20,0,20">
+                <Button 
+                    Text="Сохранить"
+                    BackgroundColor="{StaticResource AdobeAccent}"
+                    TextColor="White"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    HeightRequest="50"
+                    Command="{Binding SaveCarCommand}" />
+
+                <Button 
+                    Text="Отмена"
+                    BackgroundColor="{StaticResource Gray400}"
+                    TextColor="White"
+                    FontSize="16"
+                    HeightRequest="50"
+                    Command="{Binding CancelCommand}"
+                    Grid.Column="1" />
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

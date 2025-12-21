@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CarShowroom.ContractPreviewPage"
+             Title="Предпросмотр договора">
+    
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="16">
+            
+            <!-- Заголовок -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="ДОГОВОР КУПЛИ-ПРОДАЖИ АВТОМОБИЛЯ" 
+                           FontSize="20" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}"
+                           HorizontalOptions="Center" />
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Label Grid.Column="0"
+                               Text="{Binding ContractDate}"
+                               FontSize="14"
+                               TextColor="{StaticResource Gray900}" />
+                        <Label Grid.Column="1"
+                               Text="{Binding ContractNumber}"
+                               FontSize="14"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Black}"
+                               HorizontalOptions="End" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- Продавец -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="8">
+                    <Label Text="ПРОДАВЕЦ:" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    <Label Text="ООО &quot;Автосалон&quot;" 
+                           FontSize="14"
+                           TextColor="{StaticResource Gray900}"
+                           Margin="16,0,0,0" />
+                    <Label Text="ИНН: 1234567890" 
+                           FontSize="14"
+                           TextColor="{StaticResource Gray900}"
+                           Margin="16,0,0,0" />
+                    <Label Text="Адрес: г. Москва, ул. Примерная, д. 1" 
+                           FontSize="14"
+                           TextColor="{StaticResource Gray900}"
+                           Margin="16,0,0,0" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Покупатель -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="8">
+                    <Label Text="ПОКУПАТЕЛЬ:" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    <StackLayout Spacing="4" Margin="16,0,0,0">
+                        <Label FontSize="14"
+                               TextColor="{StaticResource Gray900}">
+                            <Label.Text>
+                                <MultiBinding StringFormat="{}{0} {1} {2}">
+                                    <Binding Path="Client.Surname" />
+                                    <Binding Path="Client.Name" />
+                                    <Binding Path="Client.Patronyc" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+                        <Label FontSize="14"
+                               TextColor="{StaticResource Gray900}">
+                            <Label.Text>
+                                <MultiBinding StringFormat="{}Телефон: {0}">
+                                    <Binding Path="Client.PhoneNumber" />
+                                </MultiBinding>
+                            </Label.Text>
+                            <Label.IsVisible>
+                                <Binding Path="Client.PhoneNumber" />
+                            </Label.IsVisible>
+                        </Label>
+                        <Label FontSize="14"
+                               TextColor="{StaticResource Gray900}">
+                            <Label.Text>
+                                <MultiBinding StringFormat="{}Паспортные данные: {0}">
+                                    <Binding Path="Client.PassData" />
+                                </MultiBinding>
+                            </Label.Text>
+                            <Label.IsVisible>
+                                <Binding Path="Client.PassData" />
+                            </Label.IsVisible>
+                        </Label>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- Предмет договора -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="1. ПРЕДМЕТ ДОГОВОРА" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Label Text="Продавец обязуется передать в собственность Покупателя, а Покупатель обязуется принять и оплатить следующий автомобиль:"
+                           FontSize="14"
+                           TextColor="{StaticResource Gray900}"
+                           Margin="16,0,0,8" />
+                    
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
+                            BackgroundColor="{StaticResource Gray100}"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="12"
+                            Margin="16,0,0,0">
+                        <Label Text="{Binding CarInfo}"
+                               FontSize="13"
+                               TextColor="{StaticResource Black}" />
+                    </Border>
+
+                    <!-- Дополнительные опции -->
+                    <StackLayout Spacing="8" Margin="16,8,0,0">
+                        <Label Text="Дополнительные опции:" 
+                               FontSize="14" 
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Gray900}" />
+                        <Label Text="{Binding AdditionsInfo}"
+                               FontSize="13"
+                               TextColor="{StaticResource Black}"
+                               Margin="8,0,0,0" />
+                    </StackLayout>
+
+                    <!-- Скидки -->
+                    <StackLayout Spacing="8" Margin="16,8,0,0">
+                        <Label Text="Примененные скидки:" 
+                               FontSize="14" 
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Gray900}" />
+                        <Label Text="{Binding DiscountsInfo}"
+                               FontSize="13"
+                               TextColor="{StaticResource Black}"
+                               Margin="8,0,0,0" />
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- Цена и порядок расчетов -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="2. ЦЕНА И ПОРЯДОК РАСЧЕТОВ" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Border StrokeThickness="1"
+                            Stroke="{StaticResource Gray200}"
+                            BackgroundColor="{StaticResource Gray100}"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="12"
+                            Margin="16,0,0,0">
+                        <Label Text="{Binding PriceInfo}"
+                               FontSize="14"
+                               TextColor="{StaticResource Black}" />
+                    </Border>
+                </StackLayout>
+            </Frame>
+
+            <!-- Ответственность сторон -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="12">
+                    <Label Text="3. ОТВЕТСТВЕННОСТЬ СТОРОН" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Black}" />
+                    
+                    <Label Text="Стороны несут ответственность за неисполнение или ненадлежащее исполнение обязательств по настоящему договору в соответствии с законодательством Российской Федерации."
+                           FontSize="14"
+                           TextColor="{StaticResource Gray900}"
+                           Margin="16,0,0,0" />
+                </StackLayout>
+            </Frame>
+
+            <!-- Подписи -->
+            <Frame BackgroundColor="White"
+                   BorderColor="{StaticResource Gray200}">
+                <StackLayout Spacing="20">
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                        <StackLayout Grid.Column="0" Spacing="8">
+                            <Label Text="ПРОДАВЕЦ:" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Black}" />
+                            <BoxView HeightRequest="1" 
+                                     Color="{StaticResource Gray200}" 
+                                     Margin="0,30,0,0" />
+                            <Label FontSize="13"
+                                   TextColor="{StaticResource Gray900}">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="{}{0} {1} {2}">
+                                        <Binding Path="Manager.Surname" />
+                                        <Binding Path="Manager.Name" />
+                                        <Binding Path="Manager.Patronyc" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                        </StackLayout>
+                        
+                        <StackLayout Grid.Column="1" Spacing="8">
+                            <Label Text="ПОКУПАТЕЛЬ:" 
+                                   FontSize="14" 
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Black}" />
+                            <BoxView HeightRequest="1" 
+                                     Color="{StaticResource Gray200}" 
+                                     Margin="0,30,0,0" />
+                            <Label FontSize="13"
+                                   TextColor="{StaticResource Gray900}">
+                                <Label.Text>
+                                    <MultiBinding StringFormat="{}{0} {1} {2}">
+                                        <Binding Path="Client.Surname" />
+                                        <Binding Path="Client.Name" />
+                                        <Binding Path="Client.Patronyc" />
+                                    </MultiBinding>
+                                </Label.Text>
+                            </Label>
+                        </StackLayout>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- Кнопки -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                <Button Text="Сгенерировать PDF" 
+                        Command="{Binding GeneratePdfCommand}"
+                        BackgroundColor="{StaticResource AdobeAccent}"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        HeightRequest="50" />
+                
+                <Button Text="Закрыть" 
+                        Command="{Binding CloseCommand}"
+                        BackgroundColor="{StaticResource Gray400}"
+                        TextColor="White"
+                        FontSize="16"
+                        HeightRequest="50"
+                        Grid.Column="1" />
+            </Grid>
+        </StackLayout>
+    </ScrollView>
+</ContentPage>
+
