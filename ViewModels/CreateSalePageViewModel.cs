@@ -308,9 +308,9 @@ namespace CarShowroom.ViewModels
                 await Task.Delay(50).ConfigureAwait(false);
                 if (!_isPageActive) return;
             }
-            else if (!string.IsNullOrWhiteSpace(ClientName))
+            else if (!string.IsNullOrWhiteSpace(ClientPassData))
             {
-                purchaseCount = await _saleService.GetClientPurchaseCountAsync(null, ClientName).ConfigureAwait(false);
+                purchaseCount = await _saleService.GetClientPurchaseCountAsync(null, ClientPassData).ConfigureAwait(false);
                 if (!_isPageActive) return;
                 await Task.Delay(50).ConfigureAwait(false);
                 if (!_isPageActive) return;
@@ -318,7 +318,7 @@ namespace CarShowroom.ViewModels
 
             var applicableDiscounts = new List<Discount>();
             
-            bool isClientSelected = SelectedClient is not null || !string.IsNullOrWhiteSpace(ClientName);
+            bool isClientSelected = SelectedClient is not null || !string.IsNullOrWhiteSpace(ClientPassData);
             
             foreach (var discount in Discounts)
             {
@@ -773,22 +773,26 @@ namespace CarShowroom.ViewModels
                 return;
             }
 
-            if (searchText.Length < 2)
-            {
-                IsClientsVisible = false;
-                return;
-            }
-
             try
             {
-                FoundClients = await _userService.SearchClientEntitiesAsync(searchText);
+                var client = await _userService.SearchClientEntityByPassDataAsync(searchText);
                 if (!_isPageActive) return;
                 
-                IsClientsVisible = FoundClients.Any();
+                if (client != null)
+                {
+                    FoundClients = new List<Client> { client };
+                    IsClientsVisible = true;
+                }
+                else
+                {
+                    FoundClients = new List<Client>();
+                    IsClientsVisible = false;
+                }
             }
             catch
             {
                 IsClientsVisible = false;
+                FoundClients = new List<Client>();
             }
         }
 
@@ -818,15 +822,16 @@ namespace CarShowroom.ViewModels
         {
             if (!_isPageActive) return;
             
-            if (string.IsNullOrWhiteSpace(ClientName))
+            if (string.IsNullOrWhiteSpace(ClientPassData))
             {
-                await Shell.Current.DisplayAlert("Ошибка", "Введите ФИО клиента для поиска", "OK");
+                await Shell.Current.DisplayAlert("Ошибка", "Введите паспортные данные для поиска клиента", "OK");
                 return;
             }
 
             try
             {
-                var client = await _userService.SearchClientEntityByNameAsync(ClientName);
+                var client = await _userService.SearchClientEntityByPassDataAsync(ClientPassData);
+                
                 if (!_isPageActive) return;
                 
                 if (client != null)
@@ -840,7 +845,7 @@ namespace CarShowroom.ViewModels
                 }
                 else
                 {
-                    await Shell.Current.DisplayAlert("Информация", "Клиент не найден. Будет создан новый клиент при сохранении.", "OK");
+                    await Shell.Current.DisplayAlert("Информация", "Клиент с указанными паспортными данными не найден. Будет создан новый клиент при сохранении.", "OK");
                     SelectedClient = null;
                 }
             }
@@ -976,6 +981,12 @@ namespace CarShowroom.ViewModels
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(ClientPassData))
+            {
+                await Shell.Current.DisplayAlert("Ошибка", "Паспортные данные обязательны для идентификации клиента", "OK");
+                return;
+            }
+
             if (!decimal.TryParse(Price, out decimal price) || price <= 0)
             {
                 await Shell.Current.DisplayAlert("Ошибка", "Введите корректную цену", "OK");
@@ -987,7 +998,7 @@ namespace CarShowroom.ViewModels
                 var clientEntity = await _userService.CreateOrGetClientEntityAsync(
                     ClientName.Trim(),
                     ClientPhone?.Trim(),
-                    ClientPassData?.Trim());
+                    ClientPassData.Trim());
 
                 decimal additionsCost = 0;
                 foreach (var addition in _selectedAdditions)

@@ -123,8 +123,13 @@ namespace CarShowroom.Services
             return await _userRepository.GetAllClientsAsync();
         }
 
-        public async Task<Client> CreateOrGetClientEntityAsync(string fullName, string? phone = null, string? passData = null)
+        public async Task<Client> CreateOrGetClientEntityAsync(string fullName, string? phone, string passData)
         {
+            if (string.IsNullOrWhiteSpace(passData))
+            {
+                throw new ArgumentException("Паспортные данные обязательны", nameof(passData));
+            }
+
             var nameParts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
             string? firstName = null;
             string? lastName = null;
@@ -137,17 +142,29 @@ namespace CarShowroom.Services
             if (nameParts.Length >= 3)
                 patronymic = nameParts[2];
 
-            var existingClient = await _clientRepository.GetClientByFullNameAsync(lastName ?? string.Empty, firstName, patronymic);
-
-            if (existingClient != null)
+            var existingClientByPass = await _clientRepository.GetClientByPassDataAsync(passData);
+            if (existingClientByPass != null)
             {
-                if (existingClient.PhoneNumber != phone || existingClient.PassData != passData)
+                bool needsUpdate = false;
+                if (existingClientByPass.Surname != lastName || 
+                    existingClientByPass.Name != firstName || 
+                    existingClientByPass.Patronyc != patronymic)
                 {
-                    existingClient.PhoneNumber = phone;
-                    existingClient.PassData = passData;
-                    await _clientRepository.UpdateAsync(existingClient);
+                    existingClientByPass.Surname = lastName;
+                    existingClientByPass.Name = firstName;
+                    existingClientByPass.Patronyc = patronymic;
+                    needsUpdate = true;
                 }
-                return existingClient;
+                if (existingClientByPass.PhoneNumber != phone)
+                {
+                    existingClientByPass.PhoneNumber = phone;
+                    needsUpdate = true;
+                }
+                if (needsUpdate)
+                {
+                    await _clientRepository.UpdateAsync(existingClientByPass);
+                }
+                return existingClientByPass;
             }
 
             var newClient = new Client
@@ -162,14 +179,12 @@ namespace CarShowroom.Services
             return await _clientRepository.AddAsync(newClient);
         }
 
-        public async Task<Client?> SearchClientEntityByNameAsync(string name)
+        public async Task<Client?> SearchClientEntityByPassDataAsync(string passData)
         {
-            return await _clientRepository.SearchClientByNameAsync(name);
-        }
+            if (string.IsNullOrWhiteSpace(passData))
+                return null;
 
-        public async Task<List<Client>> SearchClientEntitiesAsync(string searchText)
-        {
-            return await _clientRepository.SearchClientsAsync(searchText);
+            return await _clientRepository.GetClientByPassDataAsync(passData);
         }
 
         public async Task<List<Client>> GetAllClientEntitiesAsync()

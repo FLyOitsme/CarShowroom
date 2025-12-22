@@ -14,6 +14,10 @@ namespace CarShowroom.Repositories
             if (string.IsNullOrWhiteSpace(name))
                 return null;
 
+            var clientByPass = await GetClientByPassDataAsync(name);
+            if (clientByPass != null)
+                return clientByPass;
+
             var nameParts = name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (nameParts.Length == 0)
                 return null;
@@ -43,7 +47,8 @@ namespace CarShowroom.Repositories
                     (c.Name != null && c.Name.ToLower().Contains(lowerSearch)) ||
                     (c.Surname != null && c.Surname.ToLower().Contains(lowerSearch)) ||
                     (c.Patronyc != null && c.Patronyc.ToLower().Contains(lowerSearch)) ||
-                    (c.PhoneNumber != null && c.PhoneNumber.ToLower().Contains(lowerSearch)))
+                    (c.PhoneNumber != null && c.PhoneNumber.ToLower().Contains(lowerSearch)) ||
+                    (c.PassData != null && c.PassData.ToLower().Contains(lowerSearch)))
                 .ToListAsync();
         }
 
@@ -54,6 +59,15 @@ namespace CarShowroom.Repositories
                        (name == null || c.Name == name) &&
                        (patronyc == null || c.Patronyc == patronyc))
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<Client?> GetClientByPassDataAsync(string passData)
+        {
+            if (string.IsNullOrWhiteSpace(passData))
+                return null;
+
+            return await _dbSet
+                .FirstOrDefaultAsync(c => c.PassData != null && c.PassData == passData);
         }
 
         public new async Task<Client> AddAsync(Client entity)
