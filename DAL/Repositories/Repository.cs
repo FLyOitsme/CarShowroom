@@ -81,7 +81,33 @@ namespace CarShowroom.Repositories
 
         public virtual async Task UpdateAsync(T entity)
         {
-            _dbSet.Update(entity);
+            var entry = _context.Entry(entity);
+            
+            if (entry.State == EntityState.Detached)
+            {
+                var idProperty = typeof(T).GetProperty("Id");
+                if (idProperty != null)
+                {
+                    var idValue = idProperty.GetValue(entity);
+                    if (idValue != null)
+                    {
+                        var trackedEntity = await _dbSet.FindAsync(idValue);
+                        if (trackedEntity != null && !ReferenceEquals(trackedEntity, entity))
+                        {
+                            _context.Entry(trackedEntity).CurrentValues.SetValues(entity);
+                            await _context.SaveChangesAsync();
+                            return;
+                        }
+                    }
+                }
+                
+                _dbSet.Update(entity);
+            }
+            else
+            {
+                entry.State = EntityState.Modified;
+            }
+            
             await _context.SaveChangesAsync();
         }
 

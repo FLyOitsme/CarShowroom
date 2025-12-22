@@ -76,10 +76,10 @@
                                 Padding="8">
                                 <Image 
                                     Source="{Binding ImageUrl, Converter={StaticResource ImageUrlConverter}}"
-                                    Aspect="AspectFill"
+                                    Aspect="AspectFit"
                                     HeightRequest="100"
                                     WidthRequest="100"
-                                    HorizontalOptions="Center"
+                                    HorizontalOptions="FillAndExpand"
                                     VerticalOptions="Center" />
                             </Border>
 

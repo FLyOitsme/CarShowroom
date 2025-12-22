@@ -119,41 +119,7 @@ namespace CarShowroom
 
             var app = builder.Build();
             
-            InitializeDatabase(app.Services);
-            
             return app;
-        }
-
-        private static async void InitializeDatabase(IServiceProvider serviceProvider)
-        {
-            try
-            {
-                using var scope = serviceProvider.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<CarShowroomDbContext>();
-                
-                var created = await dbContext.Database.EnsureCreatedAsync();
-                
-                if (created)
-                {
-                    System.Diagnostics.Debug.WriteLine("База данных и таблицы успешно созданы.");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("База данных уже существует.");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Ошибка при создании базы данных: {ex.Message}");
-#if DEBUG
-                System.Diagnostics.Debug.WriteLine($"Тип ошибки: {ex.GetType().Name}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Внутренняя ошибка: {ex.InnerException.Message}");
-                }
-#endif
-            }
         }
     }
 }
